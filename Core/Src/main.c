@@ -63,7 +63,6 @@ static void MX_ADC3_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_HCD_Init(void);
 /* USER CODE BEGIN PFP */
-tusb_rhport_init_t TUSB_INIT_DATA = {.role = TUSB_ROLE_DEVICE, .speed = TUSB_SPEED_FULL};
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -111,22 +110,13 @@ int main(void) {
     MX_USART3_UART_Init();
     MX_USB_OTG_FS_HCD_Init();
     /* USER CODE BEGIN 2 */
-    tusb_init(BOARD_TUD_RHPORT, &TUSB_INIT_DATA);
+    setup();
+    while(1) loop();
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
-    uint32_t lastTick = 0;
-    const char str[] = "Hello World!\n";
     while(1) {
-        tud_task_ext(5, false);
-        if(HAL_GetTick() - lastTick > 1000) {
-            lastTick = HAL_GetTick();
-            if(tud_cdc_ready()) {
-                tud_cdc_write(str, sizeof(str) / sizeof(char));
-                tud_cdc_write_flush();
-            }
-        }
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
