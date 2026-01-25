@@ -14,9 +14,9 @@ set(CMAKE_C_EXTENSIONS ON)
 
 
 # Define the build type
-if(NOT CMAKE_BUILD_TYPE)
+if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
-endif()
+endif ()
 
 # Set the project name
 set(CMAKE_PROJECT_NAME RANDE_MK2)
@@ -31,6 +31,34 @@ message("Build type: " ${CMAKE_BUILD_TYPE})
 # Enable CMake support for ASM and C languages
 enable_language(C ASM)
 
+add_library(tinyusb OBJECT
+        libs/tinyusb/src/tusb.c
+        libs/tinyusb/src/common/tusb_fifo.c
+        libs/tinyusb/src/device/usbd.c
+        libs/tinyusb/src/device/usbd_control.c
+        libs/tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c
+        libs/tinyusb/src/portable/synopsys/dwc2/dwc2_common.c
+        libs/tinyusb/src/portable/st/typec/typec_stm32.c
+        libs/tinyusb/src/typec/usbc.c
+        libs/tinyusb/src/class/cdc/cdc_device.c
+)
+
+target_include_directories(tinyusb
+        PUBLIC
+        libs/tinyusb/src
+        PRIVATE
+        Drivers/CMSIS/Include
+        Drivers/CMSIS/Device/ST/STM32H7xx/Include
+        Drivers/STM32H7xx_HAL_Driver/Inc
+)
+
+target_compile_definitions(tinyusb
+        PRIVATE
+        -DSTM32H753xx
+        PUBLIC
+        -DCFG_TUSB_CONFIG_FILE="${CMAKE_SOURCE_DIR}/Core/Inc/tusb/tusb_config.h"
+)
+
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME})
 
@@ -39,22 +67,23 @@ add_subdirectory(cmake/stm32cubemx)
 
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined library search paths
+        # Add user defined library search paths
 )
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user sources here
+        # Add user sources here
+        Core/Src/usb_descriptors.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined include paths
+        # Add user defined include paths
 )
 
 # Add project symbols (macros)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined symbols
+        # Add user defined symbols
 )
 
 # Remove wrong libob.a library dependency when using cpp files
@@ -62,7 +91,7 @@ list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
 
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
-    stm32cubemx
-
-    # Add user defined libraries
+        stm32cubemx
+        tinyusb
+        # Add user defined libraries
 )
