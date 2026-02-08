@@ -240,7 +240,11 @@ SECTIONS
     . = ALIGN(8);
   } >DTCMRAM
 
-
+  .DMASECTIONS (NOLOAD) :
+  {
+    . = ABSOLUTE(0x30000000);
+    *(.ADC_RAW)
+  } >RAM_D2
 
   /* Remove information from the standard libraries */
   /DISCARD/ :

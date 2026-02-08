@@ -78,6 +78,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
         Core/Src/usb_descriptors.c
         Core/Src/main.cpp
         Core/Src/SimpleActuators.cpp
+        Core/Src/Transducers.cpp
 )
 
 # Add include paths

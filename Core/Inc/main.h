@@ -68,15 +68,23 @@ void loop(void);
 #define SCH2_GPIO_Port GPIOE
 #define SCH3_Pin GPIO_PIN_6
 #define SCH3_GPIO_Port GPIOE
+#define USRBTN_Pin GPIO_PIN_13
+#define USRBTN_GPIO_Port GPIOC
 #define SCH6_Pin GPIO_PIN_7
 #define SCH6_GPIO_Port GPIOF
 #define SCH5_Pin GPIO_PIN_8
 #define SCH5_GPIO_Port GPIOF
 #define SCH7_Pin GPIO_PIN_9
 #define SCH7_GPIO_Port GPIOF
+#define LED_Pin GPIO_PIN_14
+#define LED_GPIO_Port GPIOB
+#define LED2_Pin GPIO_PIN_1
+#define LED2_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
-
+extern ADC_HandleTypeDef hadc1;
+extern ADC_HandleTypeDef hadc2;
+extern UART_HandleTypeDef huart3;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
