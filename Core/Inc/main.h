@@ -76,8 +76,16 @@ void loop(void);
 #define SCH5_GPIO_Port GPIOF
 #define SCH7_Pin GPIO_PIN_9
 #define SCH7_GPIO_Port GPIOF
+#define MUXA0_Pin GPIO_PIN_0
+#define MUXA0_GPIO_Port GPIOG
+#define ACT_EN_Pin GPIO_PIN_1
+#define ACT_EN_GPIO_Port GPIOG
 #define LED_Pin GPIO_PIN_14
 #define LED_GPIO_Port GPIOB
+#define MUXA2_Pin GPIO_PIN_0
+#define MUXA2_GPIO_Port GPIOD
+#define MUXA1_Pin GPIO_PIN_1
+#define MUXA1_GPIO_Port GPIOD
 #define LED2_Pin GPIO_PIN_1
 #define LED2_GPIO_Port GPIOE
 
