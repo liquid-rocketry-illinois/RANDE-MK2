@@ -58,24 +58,24 @@ void loop(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define SCH0_Pin GPIO_PIN_2
-#define SCH0_GPIO_Port GPIOE
-#define SCH4_Pin GPIO_PIN_3
-#define SCH4_GPIO_Port GPIOE
-#define SCH1_Pin GPIO_PIN_4
-#define SCH1_GPIO_Port GPIOE
-#define SCH2_Pin GPIO_PIN_5
-#define SCH2_GPIO_Port GPIOE
-#define SCH3_Pin GPIO_PIN_6
+#define SCH7_Pin GPIO_PIN_2
+#define SCH7_GPIO_Port GPIOE
+#define SCH3_Pin GPIO_PIN_3
 #define SCH3_GPIO_Port GPIOE
+#define SCH6_Pin GPIO_PIN_4
+#define SCH6_GPIO_Port GPIOE
+#define SCH5_Pin GPIO_PIN_5
+#define SCH5_GPIO_Port GPIOE
+#define SCH4_Pin GPIO_PIN_6
+#define SCH4_GPIO_Port GPIOE
 #define USRBTN_Pin GPIO_PIN_13
 #define USRBTN_GPIO_Port GPIOC
-#define SCH6_Pin GPIO_PIN_7
-#define SCH6_GPIO_Port GPIOF
-#define SCH5_Pin GPIO_PIN_8
-#define SCH5_GPIO_Port GPIOF
-#define SCH7_Pin GPIO_PIN_9
-#define SCH7_GPIO_Port GPIOF
+#define SCH1_Pin GPIO_PIN_7
+#define SCH1_GPIO_Port GPIOF
+#define SCH2_Pin GPIO_PIN_8
+#define SCH2_GPIO_Port GPIOF
+#define SCH0_Pin GPIO_PIN_9
+#define SCH0_GPIO_Port GPIOF
 #define MUXA0_Pin GPIO_PIN_0
 #define MUXA0_GPIO_Port GPIOG
 #define ACT_EN_Pin GPIO_PIN_1

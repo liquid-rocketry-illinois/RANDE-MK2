@@ -5,7 +5,7 @@
 namespace SimpleActuators {
     namespace {
         const GPIO ACT_PINS[NUM_ACTS] = {
-            {LED_GPIO_Port, LED_Pin}, {SCH1_GPIO_Port, SCH1_Pin}, {SCH2_GPIO_Port, SCH2_Pin},
+            {SCH0_GPIO_Port, SCH0_Pin}, {SCH1_GPIO_Port, SCH1_Pin}, {SCH2_GPIO_Port, SCH2_Pin},
             {SCH3_GPIO_Port, SCH3_Pin}, {SCH4_GPIO_Port, SCH4_Pin}, {SCH5_GPIO_Port, SCH5_Pin},
             {SCH6_GPIO_Port, SCH6_Pin}, {SCH7_GPIO_Port, SCH7_Pin},
         };
@@ -19,6 +19,7 @@ namespace SimpleActuators {
             HAL_GPIO_WritePin(port, pin, GPIO_PIN_RESET);
         }
 
+        HAL_GPIO_WritePin(ACT_EN_GPIO_Port, ACT_EN_Pin, GPIO_PIN_SET);
         inited = true;
         RCPDebug("[EMATCH] EMatch Initialized");
         RCPDebug("[SOLENOIDS] Solenoids initialized");
