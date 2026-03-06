@@ -28,7 +28,7 @@ extern "C" void setup() {
     RCP::init();
     RCP::setReady(true);
     SimpleActuators::init();
-    // Transducers::init();
+    Transducers::init();
 }
 
 LRI::RingBuf<uint8_t, 1024> inbuffer;
@@ -53,7 +53,7 @@ extern "C" void loop() {
 
     RCP::yield();
     RCP::runTest();
-    // Transducers::yield();
+    Transducers::yield();
 
     // if(HAL_GetTick() - last > 2500) {
     //     last = HAL_GetTick();
