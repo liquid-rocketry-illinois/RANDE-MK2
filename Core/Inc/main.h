@@ -82,10 +82,16 @@ void loop(void);
 #define ACT_EN_GPIO_Port GPIOG
 #define LED_Pin GPIO_PIN_14
 #define LED_GPIO_Port GPIOB
+#define CELL1_DIN_Pin GPIO_PIN_15
+#define CELL1_DIN_GPIO_Port GPIOB
+#define CELL1_DIN_EXTI_IRQn EXTI15_10_IRQn
 #define MUXA2_Pin GPIO_PIN_0
 #define MUXA2_GPIO_Port GPIOD
 #define MUXA1_Pin GPIO_PIN_1
 #define MUXA1_GPIO_Port GPIOD
+#define CELL2_DIN_Pin GPIO_PIN_12
+#define CELL2_DIN_GPIO_Port GPIOG
+#define CELL2_DIN_EXTI_IRQn EXTI15_10_IRQn
 #define LED2_Pin GPIO_PIN_1
 #define LED2_GPIO_Port GPIOE
 

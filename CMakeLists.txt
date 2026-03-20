@@ -79,6 +79,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
         Core/Src/main.cpp
         Core/Src/SimpleActuators.cpp
         Core/Src/Transducers.cpp
+        Core/Src/LoadCells.cpp
 )
 
 # Add include paths

@@ -13,6 +13,7 @@
 
 #include "SimpleActuators.h"
 #include "Transducers.h"
+#include "LoadCells.h"
 
 tusb_rhport_init_t TUSB_INIT_DATA = {.role = TUSB_ROLE_DEVICE, .speed = TUSB_SPEED_FULL};
 
@@ -30,6 +31,7 @@ extern "C" void setup() {
     RCP::setReady(true);
     SimpleActuators::init();
     Transducers::init();
+    LoadCells::init();
 }
 
 LRI::RingBuf<uint8_t, 1024> inbuffer;
@@ -55,6 +57,7 @@ extern "C" void loop() {
     RCP::yield();
     RCP::runTest();
     Transducers::yield();
+    LoadCells::yield();
 
     // if(HAL_GetTick() - last > 2500) {
     //     last = HAL_GetTick();
@@ -84,7 +87,7 @@ RCP::Floats4 RCP::readSensor(RCP_DeviceClass devclass, uint8_t id) {
 
     switch(devclass) {
     case RCP_DEVCLASS_LOAD_CELL:
-        // floats.vals[0] = LoadCells::readCell(id);
+        floats.vals[0] = LoadCells::readCell(id);
         break;
 
     case RCP_DEVCLASS_PRESSURE_TRANSDUCER:
@@ -101,7 +104,7 @@ RCP::Floats4 RCP::readSensor(RCP_DeviceClass devclass, uint8_t id) {
 void RCP::writeSensorTare(RCP_DeviceClass devclass, uint8_t id, [[maybe_unused]] uint8_t dataChannel, float tareVal) {
     switch(devclass) {
     case RCP_DEVCLASS_LOAD_CELL:
-        // LoadCells::tare(id);
+        LoadCells::tareCell(id, tareVal);
         break;
 
     case RCP_DEVCLASS_PRESSURE_TRANSDUCER:
