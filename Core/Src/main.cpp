@@ -9,6 +9,7 @@
 
 #include "RCP_Target/LRIRingBuf.h"
 #include "RCP_Target/RCP_Target.h"
+#include "RCP_Target/procedures.h"
 
 #include "SimpleActuators.h"
 #include "Transducers.h"
@@ -109,5 +110,33 @@ void RCP::writeSensorTare(RCP_DeviceClass devclass, uint8_t id, [[maybe_unused]]
 
     default:
         break;
+    }
+}
+
+namespace Test {
+    Tests tests = {
+        new Procedure(),
+        new Procedure(),
+        new OneShot([] {
+            RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_ON);
+            RCP::writeSimpleActuator(5, RCP_SIMPLE_ACTUATOR_ON);
+        }),
+        new Procedure(),
+        new Procedure(),
+        new Procedure(),
+        new Procedure(),
+        new Procedure(),
+        new Procedure(),
+        new Procedure(),
+        new Procedure(),
+        new Procedure(),
+        new Procedure(),
+        new Procedure(),
+        new Procedure(),
+        new Procedure(),
+    };
+
+    Tests& getTests() {
+        return tests;
     }
 }
