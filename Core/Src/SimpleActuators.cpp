@@ -24,6 +24,10 @@ namespace SimpleActuators {
         RCPDebug("[EMATCH] EMatch Initialized");
         RCPDebug("[SOLENOIDS] Solenoids initialized");
     }
+
+    void deinit() {
+        HAL_GPIO_WritePin(ACT_EN_GPIO_Port, ACT_EN_Pin, GPIO_PIN_RESET);
+    }
 } // namespace SimpleActuators
 
 RCP_SimpleActuatorState RCP::simpleActuatorWrite_CLBK(uint8_t id, RCP_SimpleActuatorState state) {

@@ -24,6 +24,7 @@ namespace SimpleActuators {
     };
 
     void init();
+    void deinit();
 }
 
 #endif // RANDE_MK2_SIMPLEACTUATORS_H
