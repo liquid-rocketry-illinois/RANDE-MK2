@@ -33,6 +33,7 @@ namespace Transducers {
             bool ainmode; // true = single ended, false = diff
             const float psi_per_v;
             float voffset;
+            const float alpha = 0.001; // Filter value
         };
 
         // clang-format off
@@ -130,8 +131,6 @@ namespace Transducers {
         RCPDebug("[TRANSDUCERS] Initialized");
     }
 
-    float alpha = 0.001;
-
     void yield() {
         for(uint8_t i = 0; i < NUM_TRANSDUCERS; i++) {
             const auto& td = transducers[i];
@@ -143,7 +142,7 @@ namespace Transducers {
 
             volts *= VREF / static_cast<float>(UINT16_MAX);
             volts = (volts * td.psi_per_v) + td.voffset;
-            ptdata[i] = alpha * volts + (ptdata[i] * (1 - alpha));
+            ptdata[i] = td.alpha * volts + (ptdata[i] * (1 - td.alpha));
         }
         if(RCP::getDataStreaming() && HAL_GetTick() - timeLastLogged > 10) {
             timeLastLogged = HAL_GetTick();
