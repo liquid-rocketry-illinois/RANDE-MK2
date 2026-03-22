@@ -36,6 +36,9 @@ namespace Transducers {
             const float alpha = 0.001; // Filter value
         };
 
+        // Array containint config data for each PT. Array index matches RCP id. aoff refers to the offset into the
+        // `data` array down below that contains the data for that particular PT (i.e. which pin on the MCU the
+        // PT is connected to). psi_per_v and voffset are the calibration values.
         // clang-format off
         TData transducers[NUM_TRANSDUCERS] = {
             { // PT5
@@ -116,15 +119,25 @@ namespace Transducers {
             }
         };
         // clang-format on
+
+        // The unit converted, final PT values
         float ptdata[NUM_TRANSDUCERS] = {};
 
+        // This array is written to automatically by the DMA handler for the ADCs. This array SHOULD NOT be modified
+        // manually, as it is filled in the background. It is placed into the .ADC_RAW section placed at address
+        // 0x30000000, and is protected from cache incoherency by the MPU
         [[gnu::section(".ADC_RAW")]] uint32_t data[NUM_TRANSDUCERS] = {};
+
+        // Store time last auto-logged data over RCP
         uint32_t timeLastLogged = 0;
     } // namespace
 
     void init() {
+        // Callibrate the ADCs
         HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_DIFFERENTIAL_ENDED);
         HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
+
+        // Start the DMA processing. Both ADCs are DMAd into the same array, just at different positions
         HAL_ADC_Start_DMA(&hadc1, data, 4);
         HAL_ADC_Start_DMA(&hadc2, data + 4, 6);
 
@@ -132,18 +145,26 @@ namespace Transducers {
     }
 
     void yield() {
+        // For each PT:
         for(uint8_t i = 0; i < NUM_TRANSDUCERS; i++) {
+            // Get the PT data from the data array
             const auto& td = transducers[i];
             // ptdata[i] = data[td.aoff];
             // continue;
+            // Grab the value from the DMA data array and convert to volts
             float volts = 0;
             if(td.ainmode) volts = static_cast<float>(data[td.aoff]);
             else volts = static_cast<float>(data[td.aoff] - (UINT16_MAX / 2)) * 2;
-
             volts *= VREF / static_cast<float>(UINT16_MAX);
+
+            // Apply calibration values
             volts = (volts * td.psi_per_v) + td.voffset;
+
+            // Apply simple filtering to smooth data
             ptdata[i] = td.alpha * volts + (ptdata[i] * (1 - td.alpha));
         }
+
+        // Process if we should send back telemetry
         if(RCP::getDataStreaming() && HAL_GetTick() - timeLastLogged > 10) {
             timeLastLogged = HAL_GetTick();
             for(int i = 0; i < NUM_TRANSDUCERS; i++) {

@@ -17,16 +17,21 @@
 
 tusb_rhport_init_t TUSB_INIT_DATA = {.role = TUSB_ROLE_DEVICE, .speed = TUSB_SPEED_FULL};
 
+// This function is declared extern C so that it can be called from the C environment. Otherwise, C++ name
+// mangling would mean the C call to the function would not link
 extern "C" void setup() {
+    // Init tinyusb
     tud_rhport_init(BOARD_TUD_RHPORT, &TUSB_INIT_DATA);
 
+    // Wait for the DCR line to go high (set by RCI)
     while(!(tud_cdc_get_line_state() & 0x01)) {
         tud_task_ext(5, false);
     }
 
-    // while(HAL_GPIO_ReadPin(USRBTN_GPIO_Port, USRBTN_Pin) == GPIO_PIN_RESET) {tud_task_ext(5, false);}
+    // Turn on this led after connection success, as a visual indicator
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
 
+    // Init the various different parts of the code
     RCP::init();
     RCP::setReady(true);
     SimpleActuators::init();
@@ -34,40 +39,40 @@ extern "C" void setup() {
     LoadCells::init();
 }
 
+// Buffer to store received data for RCP
 LRI::RingBuf<uint8_t, 1024> inbuffer;
+
+// Extra temporary buffer to read from tinyusb
 uint8_t tempIn[64];
 
-uint32_t last = 0;
+// This is also extern C for the same reasons as above
 extern "C" void loop() {
+    // Make sure to call the tinyusb processing function so it can do its thing. This is why
+    // nothing in the code can block
     tud_task_ext(1, false);
+
+    // Read bytes from tinyusb input
     uint32_t read = tud_cdc_read(tempIn, sizeof(tempIn) / sizeof(uint8_t));
+
+    // Push the bytes into the buffer
     for(uint32_t i = 0; i < read; i++) {
         inbuffer.push(tempIn[i]);
     }
 
+    // Make sure to flush output so tinyusb actually sends the data over the wire
     tud_cdc_write_flush();
 
-    // for(int i = 0; i < 64; i++) {
-        // uint8_t b;
-        // HAL_StatusTypeDef ret = HAL_UART_Receive(&huart3, &b, 1, 1);
-        // if(ret == HAL_OK) inbuffer.push(b);
-        // else break;
-    // }
-
+    // Call various yielding functions
     RCP::yield();
     RCP::runTest();
     Transducers::yield();
     LoadCells::yield();
-
-    // if(HAL_GetTick() - last > 2500) {
-    //     last = HAL_GetTick();
-    //     // RCPDebug("test");
-    // }
 }
+
+// These functions are the 4 required for minimal RCP implementation
 
 void RCP::write(const void* data, uint8_t length) {
     tud_cdc_write(data, length);
-    // HAL_UART_Transmit(&huart3, static_cast<const uint8_t*>(data), length, HAL_MAX_DELAY);
 }
 
 uint8_t RCP::readAvail() { return inbuffer.size(); }
@@ -80,11 +85,14 @@ uint8_t RCP::read() {
 
 uint32_t RCP::systime() { return HAL_GetTick(); }
 
+// To be improved
 [[noreturn]] void RCP::systemReset() { __NVIC_SystemReset(); }
 
+// Callback for reading from sensor device. Automatic data streaming is handled inside the various singletons
 RCP::Floats4 RCP::readSensor(RCP_DeviceClass devclass, uint8_t id) {
     Floats4 floats;
 
+    // Switch on the device class, then load the floats structure with the appropriate data
     switch(devclass) {
     case RCP_DEVCLASS_LOAD_CELL:
         floats.vals[0] = LoadCells::readCell(id);
@@ -101,6 +109,7 @@ RCP::Floats4 RCP::readSensor(RCP_DeviceClass devclass, uint8_t id) {
     return floats;
 }
 
+// Callback for processing tare requests
 void RCP::writeSensorTare(RCP_DeviceClass devclass, uint8_t id, [[maybe_unused]] uint8_t dataChannel, float tareVal) {
     switch(devclass) {
     case RCP_DEVCLASS_LOAD_CELL:
@@ -117,6 +126,7 @@ void RCP::writeSensorTare(RCP_DeviceClass devclass, uint8_t id, [[maybe_unused]]
 }
 
 namespace Test {
+    // Test 2 is a simple test to open the ball valves at the same time
     Tests tests = {
         new Procedure(),
         new Procedure(),

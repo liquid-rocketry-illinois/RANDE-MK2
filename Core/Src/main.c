@@ -71,6 +71,7 @@ static void MX_I2C2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+// Redirect printf to the stlink uart for debugging
 int __io_putchar(int cha) {
     uint8_t ch = cha;
     HAL_UART_Transmit(&huart3, &ch, 1, HAL_MAX_DELAY);
@@ -127,6 +128,7 @@ int main(void) {
     MX_USB_OTG_FS_HCD_Init();
     MX_I2C2_Init();
     /* USER CODE BEGIN 2 */
+    // Call the setup and loop functions in main.cpp to transition out of C and into the cpp environment
     setup();
     while(1) loop();
     /* USER CODE END 2 */
