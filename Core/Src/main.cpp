@@ -83,7 +83,7 @@ uint8_t RCP::read() {
     return val;
 }
 
-uint32_t RCP::systime() { return HAL_GetTick(); }
+inline uint32_t RCP::systime() { return HAL_GetTick(); }
 
 // To be improved
 [[noreturn]] void RCP::systemReset() { __NVIC_SystemReset(); }
