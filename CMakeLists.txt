@@ -103,4 +103,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         # Add user defined libraries
 )
 
+target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -u _printf_float)
+
 target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -Wpedantic)
