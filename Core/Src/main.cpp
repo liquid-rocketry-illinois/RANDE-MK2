@@ -11,15 +11,20 @@
 #include "RCP_Target/RCP_Target.h"
 #include "RCP_Target/procedures.h"
 
+#include <stdio.h>
+#include "LoadCells.h"
 #include "SimpleActuators.h"
 #include "Transducers.h"
-#include "LoadCells.h"
 
 tusb_rhport_init_t TUSB_INIT_DATA = {.role = TUSB_ROLE_DEVICE, .speed = TUSB_SPEED_FULL};
 
 // This function is declared extern C so that it can be called from the C environment. Otherwise, C++ name
 // mangling would mean the C call to the function would not link
 extern "C" void setup() {
+    // while(HAL_GPIO_ReadPin(USRBTN_GPIO_Port, USRBTN_Pin) != GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+    // LoadCells::init();
+    // return;
     // Init tinyusb
     tud_rhport_init(BOARD_TUD_RHPORT, &TUSB_INIT_DATA);
 
@@ -47,6 +52,11 @@ uint8_t tempIn[64];
 
 // This is also extern C for the same reasons as above
 extern "C" void loop() {
+    // LoadCells::yield();
+    // printf("Val: %f\n", LoadCells::readCell(0));
+    // HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    // HAL_Delay(1000);
+    // return;
     // Make sure to call the tinyusb processing function so it can do its thing. This is why
     // nothing in the code can block
     tud_task_ext(1, false);
@@ -71,9 +81,7 @@ extern "C" void loop() {
 
 // These functions are the 4 required for minimal RCP implementation
 
-void RCP::write(const void* data, uint8_t length) {
-    tud_cdc_write(data, length);
-}
+void RCP::write(const void* data, uint8_t length) { tud_cdc_write(data, length); }
 
 uint8_t RCP::readAvail() { return inbuffer.size(); }
 
@@ -83,7 +91,7 @@ uint8_t RCP::read() {
     return val;
 }
 
-inline uint32_t RCP::systime() { return HAL_GetTick(); }
+uint32_t RCP::systime() { return HAL_GetTick(); }
 
 // To be improved
 [[noreturn]] void RCP::systemReset() { __NVIC_SystemReset(); }
@@ -149,7 +157,5 @@ namespace Test {
         new Procedure(),
     };
 
-    Tests& getTests() {
-        return tests;
-    }
-}
+    Tests& getTests() { return tests; }
+} // namespace Test
