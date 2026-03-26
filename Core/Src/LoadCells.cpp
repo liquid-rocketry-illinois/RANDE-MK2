@@ -26,7 +26,7 @@ namespace LoadCells {
             int32_t rawLatestReading = 0;
 
             float offset = 0;
-            float scale = 1;
+            float scale = -0.00000780640124902f * 8.5f;
 
             float latestReading = 17.12345f;
 
@@ -174,8 +174,8 @@ namespace LoadCells {
     }
 
     void yield() {
-        C1::latestReading = C1::scale * (static_cast<float>(C1::rawLatestReading) + C1::offset);
-        C2::latestReading = C2::scale * (static_cast<float>(C2::rawLatestReading) + C2::offset);
+        C1::latestReading = C1::scale * (static_cast<float>(C1::rawLatestReading)) + C1::offset;
+        C2::latestReading = C2::scale * (static_cast<float>(C2::rawLatestReading)) + C2::offset;
 
         if(RCP::getDataStreaming() && HAL_GetTick() - lastLogged > 10) {
             lastLogged = HAL_GetTick();
