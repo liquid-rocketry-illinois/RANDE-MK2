@@ -134,10 +134,32 @@ void RCP::writeSensorTare(RCP_DeviceClass devclass, uint8_t id, [[maybe_unused]]
 }
 
 namespace Test {
+    class TimedValves : public Procedure {
+        uint32_t tstart = 0;
+    public:
+        void initialize() override {
+            tstart = RCP::systime();
+            RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_ON);
+        }
+
+        void end(bool interrupted) override {
+            (void) interrupted;
+            RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_OFF);
+            char text[60];
+            snprintf(text, sizeof(text), "Valve open for: %ldms\n", RCP::systime() - tstart);
+            RCP::RCPWriteSerialString(text);
+        }
+
+        bool isFinished() override {
+            return false;
+        }
+    };
+
+    // Test 1 is a program to open the MBV and track the time they are open for. The time is then printed to console
     // Test 2 is a simple test to open the ball valves at the same time
     Tests tests = {
         new Procedure(),
-        new Procedure(),
+        new TimedValves(),
         new OneShot([] {
             RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_ON);
             RCP::writeSimpleActuator(5, RCP_SIMPLE_ACTUATOR_ON);
