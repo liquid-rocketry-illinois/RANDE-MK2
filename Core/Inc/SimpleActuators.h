@@ -5,7 +5,7 @@
 #include <cstdint>
 
 namespace SimpleActuators {
-    constexpr uint8_t NUM_ACTS = 8;
+    constexpr uint8_t NUM_ACTS = 9;
 
     // These match the Solenoid numbers from the P&ID to the RCP IDs. The RCP ID is used as the index into
     // the state and pin assignment arrays
@@ -21,6 +21,10 @@ namespace SimpleActuators {
     struct GPIO {
         GPIO_TypeDef* port;
         uint16_t pin;
+
+        bool dual = false;
+        GPIO_TypeDef* port2 = nullptr;
+        uint16_t pin2 = 0;
     };
 
     void init();

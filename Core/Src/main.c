@@ -575,16 +575,19 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(GPIOF, SCH1_Pin | SCH2_Pin | SCH0_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOG, MUXA0_Pin | ACT_EN_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOG, MUXA0_Pin | ACT_EN0_Pin | SCH9_Pin | SCH8_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOB, SCOPE_Pin | LED_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
+    HAL_GPIO_WritePin(GPIOC, SCH15_Pin | SCH14_Pin | SCH13_Pin | SCH12_Pin | SCH11_Pin, GPIO_PIN_RESET);
+
+    /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(SCOPE2_GPIO_Port, SCOPE2_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOD, MUXA2_Pin | MUXA1_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOD, MUXA2_Pin | MUXA1_Pin | SCH10_Pin | ACT_EN1_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : SCH7_Pin SCH3_Pin SCH6_Pin SCH5_Pin
                              SCH4_Pin LED2_Pin */
@@ -607,8 +610,8 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-    /*Configure GPIO pins : MUXA0_Pin ACT_EN_Pin */
-    GPIO_InitStruct.Pin = MUXA0_Pin | ACT_EN_Pin;
+    /*Configure GPIO pins : MUXA0_Pin ACT_EN0_Pin SCH9_Pin SCH8_Pin */
+    GPIO_InitStruct.Pin = MUXA0_Pin | ACT_EN0_Pin | SCH9_Pin | SCH8_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -627,6 +630,14 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(CELL1_DIN_GPIO_Port, &GPIO_InitStruct);
 
+    /*Configure GPIO pins : SCH15_Pin SCH14_Pin SCH13_Pin SCH12_Pin
+                             SCH11_Pin */
+    GPIO_InitStruct.Pin = SCH15_Pin | SCH14_Pin | SCH13_Pin | SCH12_Pin | SCH11_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
     /*Configure GPIO pin : SCOPE2_Pin */
     GPIO_InitStruct.Pin = SCOPE2_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -634,8 +645,8 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(SCOPE2_GPIO_Port, &GPIO_InitStruct);
 
-    /*Configure GPIO pins : MUXA2_Pin MUXA1_Pin */
-    GPIO_InitStruct.Pin = MUXA2_Pin | MUXA1_Pin;
+    /*Configure GPIO pins : MUXA2_Pin MUXA1_Pin SCH10_Pin ACT_EN1_Pin */
+    GPIO_InitStruct.Pin = MUXA2_Pin | MUXA1_Pin | SCH10_Pin | ACT_EN1_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
