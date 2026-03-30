@@ -42,23 +42,27 @@ namespace Transducers {
         // clang-format off
         TData transducers[NUM_TRANSDUCERS] = {
             { // PT5
-                .aoff = 7,
+                .aoff = 8,
                 .ainmode = true,
                 // Old Vals
                 // .psi_per_v = 758.686353,
                 // .voffset = -120.6436201
 
                 // Recalced
-                .psi_per_v = 703.5993588f,
-                .voffset = -3.753616816f
+                // .psi_per_v = 703.5993588f * 3,
+                // .voffset = -3.753616816f
                 // .psi_per_v = 1,
                 // .voffset = 0
+                .psi_per_v = 686.9490949f,
+                .voffset = -2.361636292f
             },
             { // PT6
                 .aoff = 6,
                 .ainmode = true,
-                .psi_per_v = 695.0840794f,
-                .voffset = -4.774080473f
+                .psi_per_v = 1,
+                .voffset = 0
+                // .psi_per_v = 695.0840794f,
+                // .voffset = -4.774080473f
             },
             { // PT7
                 .aoff = 8,
@@ -75,8 +79,10 @@ namespace Transducers {
             { // PT1
                 .aoff = 4,
                 .ainmode = true,
-                .psi_per_v = 594.6966303f,
-                .voffset = -238.7113868f
+                // .psi_per_v = 594.6966303f,
+                // .voffset = -238.7113868f
+                .psi_per_v = 569.5833359,
+                .voffset = 0
             },
             { // PT2
                 .aoff = 8,
@@ -89,21 +95,25 @@ namespace Transducers {
             { // PT3
                 .aoff = 5,
                 .ainmode = true,
-                .psi_per_v = 589.6234427f,
-                .voffset = -231.3814336f
+                // .psi_per_v = 589.6234427f,
+                // .voffset = -231.3814336f
+                .psi_per_v = 592.15,
+                .voffset = 0
             },
             { // PT4
                 .aoff = 6,
                 .ainmode = true,
-                // .psi_per_v = 1,
-                // .voffset = 0
-                .psi_per_v = 695.0840794f,
-                .voffset = -4.774080473f
+                .psi_per_v = 1,
+                .voffset = 0
+                // .psi_per_v = 695.0840794f,
+                // .voffset = -4.774080473f
             },
             { // PT9
-                .aoff = 4,
+                .aoff = 7,
                 .ainmode = true,
-                .psi_per_v = 1,
+                // .psi_per_v = 686.9490949f,
+                // .voffset = -2.361636292f
+                .psi_per_v = 2135.82f,
                 .voffset = 0
             },
             { // PT10
