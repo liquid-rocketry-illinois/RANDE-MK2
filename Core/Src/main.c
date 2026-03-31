@@ -250,7 +250,7 @@ static void MX_ADC1_Init(void) {
     hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
     hadc1.Init.LowPowerAutoWait = DISABLE;
     hadc1.Init.ContinuousConvMode = ENABLE;
-    hadc1.Init.NbrOfConversion = 4;
+    hadc1.Init.NbrOfConversion = 5;
     hadc1.Init.DiscontinuousConvMode = DISABLE;
     hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
     hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -258,7 +258,7 @@ static void MX_ADC1_Init(void) {
     hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
     hadc1.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
     hadc1.Init.OversamplingMode = DISABLE;
-    hadc1.Init.Oversampling.Ratio = 8;
+    hadc1.Init.Oversampling.Ratio = 1;
     if(HAL_ADC_Init(&hadc1) != HAL_OK) {
         Error_Handler();
     }
@@ -275,7 +275,7 @@ static void MX_ADC1_Init(void) {
     sConfig.Channel = ADC_CHANNEL_2;
     sConfig.Rank = ADC_REGULAR_RANK_1;
     sConfig.SamplingTime = ADC_SAMPLETIME_810CYCLES_5;
-    sConfig.SingleDiff = ADC_DIFFERENTIAL_ENDED;
+    sConfig.SingleDiff = ADC_SINGLE_ENDED;
     sConfig.OffsetNumber = ADC_OFFSET_NONE;
     sConfig.Offset = 0;
     sConfig.OffsetSignedSaturation = DISABLE;
@@ -303,6 +303,14 @@ static void MX_ADC1_Init(void) {
      */
     sConfig.Channel = ADC_CHANNEL_5;
     sConfig.Rank = ADC_REGULAR_RANK_4;
+    if(HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
+        Error_Handler();
+    }
+
+    /** Configure Regular Channel
+     */
+    sConfig.Channel = ADC_CHANNEL_7;
+    sConfig.Rank = ADC_REGULAR_RANK_5;
     if(HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
     }
@@ -337,7 +345,7 @@ static void MX_ADC2_Init(void) {
     hadc2.Init.EOCSelection = ADC_EOC_SEQ_CONV;
     hadc2.Init.LowPowerAutoWait = DISABLE;
     hadc2.Init.ContinuousConvMode = ENABLE;
-    hadc2.Init.NbrOfConversion = 6;
+    hadc2.Init.NbrOfConversion = 5;
     hadc2.Init.DiscontinuousConvMode = DISABLE;
     hadc2.Init.ExternalTrigConv = ADC_SOFTWARE_START;
     hadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -365,7 +373,7 @@ static void MX_ADC2_Init(void) {
 
     /** Configure Regular Channel
      */
-    sConfig.Channel = ADC_CHANNEL_6;
+    sConfig.Channel = ADC_CHANNEL_14;
     sConfig.Rank = ADC_REGULAR_RANK_2;
     if(HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK) {
         Error_Handler();
@@ -373,7 +381,7 @@ static void MX_ADC2_Init(void) {
 
     /** Configure Regular Channel
      */
-    sConfig.Channel = ADC_CHANNEL_18;
+    sConfig.Channel = ADC_CHANNEL_15;
     sConfig.Rank = ADC_REGULAR_RANK_3;
     if(HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK) {
         Error_Handler();
@@ -381,7 +389,7 @@ static void MX_ADC2_Init(void) {
 
     /** Configure Regular Channel
      */
-    sConfig.Channel = ADC_CHANNEL_19;
+    sConfig.Channel = ADC_CHANNEL_18;
     sConfig.Rank = ADC_REGULAR_RANK_4;
     if(HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK) {
         Error_Handler();
@@ -389,16 +397,8 @@ static void MX_ADC2_Init(void) {
 
     /** Configure Regular Channel
      */
-    sConfig.Channel = ADC_CHANNEL_15;
+    sConfig.Channel = ADC_CHANNEL_19;
     sConfig.Rank = ADC_REGULAR_RANK_5;
-    if(HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK) {
-        Error_Handler();
-    }
-
-    /** Configure Regular Channel
-     */
-    sConfig.Channel = ADC_CHANNEL_14;
-    sConfig.Rank = ADC_REGULAR_RANK_6;
     if(HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK) {
         Error_Handler();
     }

@@ -29,8 +29,7 @@ PF14: R2, AO5
 namespace Transducers {
     namespace {
         struct TData {
-            uint8_t aoff;
-            bool ainmode; // true = single ended, false = diff
+            const uint8_t aoff;
             const float psi_per_v;
             float voffset;
             const float alpha = 0.001; // Filter value
@@ -42,88 +41,52 @@ namespace Transducers {
         // clang-format off
         TData transducers[NUM_TRANSDUCERS] = {
             { // PT5
-                .aoff = 8,
-                .ainmode = true,
-                // Old Vals
-                // .psi_per_v = 758.686353,
-                // .voffset = -120.6436201
-
-                // Recalced
-                // .psi_per_v = 703.5993588f * 3,
-                // .voffset = -3.753616816f
-                // .psi_per_v = 1,
-                // .voffset = 0
-                .psi_per_v = 686.9490949f,
-                .voffset = -2.361636292f
-            },
-            { // PT6
-                .aoff = 6,
-                .ainmode = true,
+                .aoff = 0,
                 .psi_per_v = 1,
                 .voffset = 0
-                // .psi_per_v = 695.0840794f,
-                // .voffset = -4.774080473f
+            },
+            { // PT6
+                .aoff = 0,
+                .psi_per_v = 1,
+                .voffset = 0
             },
             { // PT7
-                .aoff = 8,
-                .ainmode = true,
-                .psi_per_v = 686.9490949f,
-                .voffset = -2.361636292f
+                .aoff = 0,
+                .psi_per_v = 1,
+                .voffset = 0
             },
             { // PT8
-                .aoff = 1,
-                .ainmode = false,
+                .aoff = 0,
                 .psi_per_v = 1,
                 .voffset = 0
             },
             { // PT1
-                .aoff = 4,
-                .ainmode = true,
-                // .psi_per_v = 594.6966303f,
-                // .voffset = -238.7113868f
-                .psi_per_v = 569.5833359,
+                .aoff = 0,
+                .psi_per_v = 1,
                 .voffset = 0
             },
             { // PT2
-                .aoff = 8,
-                .ainmode = true,
-                .psi_per_v = 686.9490949f,
-                .voffset = -2.361636292f
-                // .psi_per_v = 1,
-                // .voffset = 0
+                .aoff = 0,
+                .psi_per_v = 1,
+                .voffset = 0
             },
             { // PT3
-                .aoff = 5,
-                .ainmode = true,
-                // .psi_per_v = 589.6234427f,
-                // .voffset = -231.3814336f
-                .psi_per_v = 592.15,
+                .aoff = 0,
+                .psi_per_v = 1,
                 .voffset = 0
             },
             { // PT4
-                .aoff = 6,
-                .ainmode = true,
+                .aoff = 0,
                 .psi_per_v = 1,
                 .voffset = 0
-                // .psi_per_v = 695.0840794f,
-                // .voffset = -4.774080473f
             },
             { // PT9
-                .aoff = 7,
-                .ainmode = true,
-                // .psi_per_v = 686.9490949f,
-                // .voffset = -2.361636292f
-                .psi_per_v = 2135.82f,
+                .aoff = 0,
+                .psi_per_v = 1,
                 .voffset = 0
             },
             { // PT10
                 .aoff = 9,
-                .ainmode = true,
-                // Old vals
-                // .psi_per_v = 503.598385527986f,
-                // .voffset = -197.81374604647237
-
-                // Recalculated vals
                 .psi_per_v = 504.2437151f,
                 .voffset = -200.0827676f
             }
@@ -148,8 +111,8 @@ namespace Transducers {
         HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
 
         // Start the DMA processing. Both ADCs are DMAd into the same array, just at different positions
-        HAL_ADC_Start_DMA(&hadc1, data, 4);
-        HAL_ADC_Start_DMA(&hadc2, data + 4, 6);
+        HAL_ADC_Start_DMA(&hadc1, data, 5);
+        HAL_ADC_Start_DMA(&hadc2, data + 5, 5);
 
         RCPDebug("[TRANSDUCERS] Initialized");
     }
@@ -162,10 +125,7 @@ namespace Transducers {
             // ptdata[i] = data[td.aoff];
             // continue;
             // Grab the value from the DMA data array and convert to volts
-            float volts = 0;
-            if(td.ainmode) volts = static_cast<float>(data[td.aoff]);
-            else volts = static_cast<float>(data[td.aoff] - (UINT16_MAX / 2)) * 2;
-            volts *= VREF / static_cast<float>(UINT16_MAX);
+            float volts = static_cast<float>(data[td.aoff]) * VREF / static_cast<float>(UINT16_MAX);
 
             // Apply calibration values
             volts = (volts * td.psi_per_v) + td.voffset;
