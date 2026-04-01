@@ -77,6 +77,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
         # Add user sources here
         Core/Src/usb_descriptors.c
         Core/Src/main.cpp
+        Core/Src/BoolSensors.cpp
         Core/Src/SimpleActuators.cpp
         Core/Src/Transducers.cpp
         Core/Src/Thermocouples.cpp

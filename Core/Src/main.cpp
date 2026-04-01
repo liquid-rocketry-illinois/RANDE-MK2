@@ -12,6 +12,7 @@
 #include "RCP_Target/procedures.h"
 
 #include <stdio.h>
+#include "BoolSensors.h"
 #include "LoadCells.h"
 #include "SimpleActuators.h"
 #include "Thermocouples.h"
@@ -43,6 +44,7 @@ extern "C" void setup() {
     SimpleActuators::init();
     Transducers::init();
     LoadCells::init();
+    BoolSensors::init();
 }
 
 // Buffer to store received data for RCP
@@ -78,6 +80,7 @@ extern "C" void loop() {
     RCP::runTest();
     Transducers::yield();
     LoadCells::yield();
+    BoolSensors::yield();
 }
 
 // These functions are the 4 required for minimal RCP implementation

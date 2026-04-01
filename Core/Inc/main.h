@@ -109,6 +109,8 @@ void loop(void);
 #define MUXA1_GPIO_Port GPIOD
 #define SCH10_Pin GPIO_PIN_2
 #define SCH10_GPIO_Port GPIOD
+#define BURN_WIRE_Pin GPIO_PIN_3
+#define BURN_WIRE_GPIO_Port GPIOD
 #define ACT_EN1_Pin GPIO_PIN_7
 #define ACT_EN1_GPIO_Port GPIOD
 #define CELL2_DIN_Pin GPIO_PIN_12
