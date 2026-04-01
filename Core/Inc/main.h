@@ -121,6 +121,7 @@ void loop(void);
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
 extern UART_HandleTypeDef huart3;
+extern I2C_HandleTypeDef hi2c2;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

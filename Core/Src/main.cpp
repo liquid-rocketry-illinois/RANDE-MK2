@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include "LoadCells.h"
 #include "SimpleActuators.h"
+#include "Thermocouples.h"
 #include "Transducers.h"
 
 tusb_rhport_init_t TUSB_INIT_DATA = {.role = TUSB_ROLE_DEVICE, .speed = TUSB_SPEED_FULL};
@@ -110,6 +111,10 @@ RCP::Floats4 RCP::readSensor(RCP_DeviceClass devclass, uint8_t id) {
         floats.vals[0] = Transducers::readTransducer(id);
         break;
 
+    case RCP_DEVCLASS_TEMPERATURE:
+        floats.vals[0] = TC::readTC(id);
+        break;
+
     default:
         break;
     }
@@ -126,6 +131,10 @@ void RCP::writeSensorTare(RCP_DeviceClass devclass, uint8_t id, [[maybe_unused]]
 
     case RCP_DEVCLASS_PRESSURE_TRANSDUCER:
         Transducers::tare(id, tareVal);
+        break;
+
+    case RCP_DEVCLASS_TEMPERATURE:
+        TC::tareTC(id, tareVal);
         break;
 
     default:
