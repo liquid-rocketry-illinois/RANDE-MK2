@@ -53,6 +53,9 @@ LRI::RingBuf<uint8_t, 1024> inbuffer;
 // Extra temporary buffer to read from tinyusb
 uint8_t tempIn[64];
 
+constexpr float VENT_THRESHOLD = 600;
+bool prevVenting = false;
+
 // This is also extern C for the same reasons as above
 extern "C" void loop() {
     // LoadCells::yield();
@@ -81,6 +84,20 @@ extern "C" void loop() {
     Transducers::yield();
     LoadCells::yield();
     BoolSensors::yield();
+
+    if(Transducers::readTransducer(2) > VENT_THRESHOLD) {
+        if(!prevVenting) {
+            prevVenting = true;
+            RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
+        }
+    }
+
+    else {
+        if(prevVenting) {
+            prevVenting = false;
+            RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
+        }
+    }
 }
 
 // These functions are the 4 required for minimal RCP implementation
@@ -148,6 +165,7 @@ void RCP::writeSensorTare(RCP_DeviceClass devclass, uint8_t id, [[maybe_unused]]
 namespace Test {
     class TimedValves : public Procedure {
         uint32_t tstart = 0;
+
     public:
         void initialize() override {
             tstart = RCP::systime();
@@ -162,9 +180,7 @@ namespace Test {
             RCP::RCPWriteSerialString(text);
         }
 
-        bool isFinished() override {
-            return false;
-        }
+        bool isFinished() override { return false; }
     };
 
     class TimedBW : public Procedure {
@@ -176,9 +192,7 @@ namespace Test {
             RCP::writeSimpleActuator(2, RCP_SIMPLE_ACTUATOR_ON);
         }
 
-        bool isFinished() override {
-            return !RCP::readBoolSensor(0);
-        }
+        bool isFinished() override { return !RCP::readBoolSensor(0); }
 
         void end(bool interrupted) override {
             (void) interrupted;
