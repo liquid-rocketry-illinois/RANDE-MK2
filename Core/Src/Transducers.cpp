@@ -40,26 +40,6 @@ namespace Transducers {
         // PT is connected to). psi_per_v and voffset are the calibration values.
         // clang-format off
         TData transducers[NUM_TRANSDUCERS] = {
-            { // PT5
-                .aoff = 0,
-                .psi_per_v = 1,
-                .voffset = 0
-            },
-            { // PT6
-                .aoff = 0,
-                .psi_per_v = 1,
-                .voffset = 0
-            },
-            { // PT7
-                .aoff = 0,
-                .psi_per_v = 1,
-                .voffset = 0
-            },
-            { // PT8
-                .aoff = 0,
-                .psi_per_v = 1,
-                .voffset = 0
-            },
             { // PT1
                 .aoff = 0,
                 .psi_per_v = 1,
@@ -76,6 +56,26 @@ namespace Transducers {
                 .voffset = 0
             },
             { // PT4
+                .aoff = 0,
+                .psi_per_v = 1,
+                .voffset = 0
+            },
+            { // PT5
+                .aoff = 0,
+                .psi_per_v = 1,
+                .voffset = 0
+            },
+            { // PT6
+                .aoff = 0,
+                .psi_per_v = 1,
+                .voffset = 0
+            },
+            { // PT7
+                .aoff = 0,
+                .psi_per_v = 1,
+                .voffset = 0
+            },
+            { // PT8
                 .aoff = 0,
                 .psi_per_v = 1,
                 .voffset = 0
