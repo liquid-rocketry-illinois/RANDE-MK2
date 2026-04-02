@@ -167,10 +167,32 @@ namespace Test {
         }
     };
 
+    class TimedBW : public Procedure {
+        uint32_t tstart = 0;
+
+    public:
+        void initialize() override {
+            tstart = RCP::systime();
+            RCP::writeSimpleActuator(2, RCP_SIMPLE_ACTUATOR_ON);
+        }
+
+        bool isFinished() override {
+            return !RCP::readBoolSensor(0);
+        }
+
+        void end(bool interrupted) override {
+            (void) interrupted;
+            RCP::writeSimpleActuator(2, RCP_SIMPLE_ACTUATOR_OFF);
+            char text[60];
+            snprintf(text, sizeof(text), "Burn wire delay: %ldms\n", RCP::systime() - tstart);
+            RCP::RCPWriteSerialString(text);
+        }
+    };
+
     // Test 1 is a program to open the MBV and track the time they are open for. The time is then printed to console
     // Test 2 is a simple test to open the ball valves at the same time
     Tests tests = {
-        new Procedure(),
+        new TimedBW(),
         new TimedValves(),
         new OneShot([] {
             RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_ON);
