@@ -301,7 +301,7 @@ static void MX_ADC1_Init(void) {
 
     /** Configure Regular Channel
      */
-    sConfig.Channel = ADC_CHANNEL_5;
+    sConfig.Channel = ADC_CHANNEL_6;
     sConfig.Rank = ADC_REGULAR_RANK_4;
     if(HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
@@ -564,8 +564,8 @@ static void MX_GPIO_Init(void) {
     __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOF_CLK_ENABLE();
     __HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOG_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
     /*Configure GPIO pin Output Level */
