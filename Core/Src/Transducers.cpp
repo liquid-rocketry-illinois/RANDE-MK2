@@ -35,7 +35,7 @@ namespace Transducers {
         TData transducers[NUM_TRANSDUCERS] = {
             { // PT1
                 .aoff = 6,
-                .psi_per_v = 1,
+                .psi_per_v = 1955.888606f,
                 .voffset = 0
             },
             { // PT2
@@ -45,22 +45,22 @@ namespace Transducers {
             },
             { // PT3
                 .aoff = 8,
-                .psi_per_v = 1,
+                .psi_per_v = 623.1719912f,
                 .voffset = 0
             },
             { // PT4
                 .aoff = 9,
-                .psi_per_v = 1,
+                .psi_per_v = 1838.94488f,
                 .voffset = 0
             },
             { // PT5
                 .aoff = 1,
-                .psi_per_v = 1,
+                .psi_per_v = 1838.94488f,
                 .voffset = 0
             },
             { // PT6
                 .aoff = 4,
-                .psi_per_v = 1,
+                .psi_per_v = 5132.8549,
                 .voffset = 0
             },
             { // PT7
@@ -70,7 +70,7 @@ namespace Transducers {
             },
             { // PT8
                 .aoff = 3,
-                .psi_per_v = 1,
+                .psi_per_v = 1868.679613f,
                 .voffset = 0
             },
             { // PT9
@@ -80,10 +80,10 @@ namespace Transducers {
             },
             { // PT10
                 .aoff = 2,
-                .psi_per_v = 1,
-                .voffset = 0
-                // .psi_per_v = 504.2437151f,
-                // .voffset = -200.0827676f
+                // .psi_per_v = 1,
+                // .voffset = 0
+                .psi_per_v = 504.2437151f,
+                .voffset = -200.0827676f
             }
         };
         // clang-format on

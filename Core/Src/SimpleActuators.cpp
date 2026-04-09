@@ -10,15 +10,17 @@ namespace SimpleActuators {
 
         // clang-format off
         const GPIO ACT_PINS[NUM_ACTS] = {
-            {SCH0_GPIO_Port, SCH0_Pin},
-            {SCH1_GPIO_Port, SCH1_Pin},
-            {SCH2_GPIO_Port, SCH2_Pin},
-            {SCH3_GPIO_Port, SCH3_Pin},
-            {SCH4_GPIO_Port, SCH4_Pin},
-            {SCH5_GPIO_Port, SCH5_Pin},
+            {SCH7_GPIO_Port, SCH7_Pin},
             {SCH6_GPIO_Port, SCH6_Pin},
-            {SCH8_GPIO_Port, SCH8_Pin, true, SCH9_GPIO_Port, SCH9_Pin},
-            {SCH10_GPIO_Port, SCH10_Pin, true, SCH11_GPIO_Port, SCH11_Pin}
+            {SCH5_GPIO_Port, SCH5_Pin},
+            {SCH4_GPIO_Port, SCH4_Pin},
+
+            {SCH8_GPIO_Port, SCH8_Pin},
+            {SCH9_GPIO_Port, SCH9_Pin},
+            {SCH10_GPIO_Port, SCH10_Pin},
+            {SCH11_GPIO_Port, SCH11_Pin},
+
+            {SCH2_GPIO_Port, SCH2_Pin, true, SCH3_GPIO_Port, SCH3_Pin}
         };
         // clang-format on
 
@@ -33,7 +35,7 @@ namespace SimpleActuators {
         // Write all actuators to off
         for(const auto& [port, pin, dual, port2, pin2] : ACT_PINS) {
             HAL_GPIO_WritePin(port, pin, GPIO_PIN_RESET);
-            if(dual) HAL_GPIO_WritePin(port2, pin2, GPIO_PIN_RESET);
+            if(dual) HAL_GPIO_WritePin(port2, pin2, GPIO_PIN_SET);
         }
 
         // The level shifter has an extra output enable, so turn that on too
