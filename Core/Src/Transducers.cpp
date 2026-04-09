@@ -25,7 +25,7 @@ namespace Transducers {
             const uint8_t aoff;
             const float psi_per_v;
             float voffset;
-            const float alpha = 0.001; // Filter value
+            const float alpha = 0.0001; // Filter value
         };
 
         // Array containint config data for each PT. Array index matches RCP id. aoff refers to the offset into the
@@ -46,12 +46,14 @@ namespace Transducers {
             { // PT3
                 .aoff = 8,
                 .psi_per_v = 623.1719912f,
-                .voffset = 0
+                .voffset = 0,
+                .alpha = 0.001
             },
             { // PT4
                 .aoff = 9,
                 .psi_per_v = 1838.94488f,
-                .voffset = 0
+                .voffset = 0,
+                .alpha = 0.001
             },
             { // PT5
                 .aoff = 1,
