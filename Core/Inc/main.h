@@ -70,6 +70,8 @@ void loop(void);
 #define SCH4_GPIO_Port GPIOE
 #define USRBTN_Pin GPIO_PIN_13
 #define USRBTN_GPIO_Port GPIOC
+#define TCA_NRST_Pin GPIO_PIN_2
+#define TCA_NRST_GPIO_Port GPIOF
 #define SCH1_Pin GPIO_PIN_7
 #define SCH1_GPIO_Port GPIOF
 #define SCH2_Pin GPIO_PIN_8

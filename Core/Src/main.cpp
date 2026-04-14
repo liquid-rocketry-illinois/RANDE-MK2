@@ -45,6 +45,7 @@ extern "C" void setup() {
     Transducers::init();
     LoadCells::init();
     BoolSensors::init();
+    TC::init();
 }
 
 // Buffer to store received data for RCP
@@ -84,20 +85,22 @@ extern "C" void loop() {
     Transducers::yield();
     LoadCells::yield();
     BoolSensors::yield();
+    TC::yield();
 
-    if(Transducers::readTransducer(2) > VENT_THRESHOLD) {
-        if(!prevVenting) {
-            prevVenting = true;
-            RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
-        }
-    }
 
-    else {
-        if(prevVenting) {
-            prevVenting = false;
-            RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
-        }
-    }
+    // if(Transducers::readTransducer(2) > VENT_THRESHOLD) {
+    //     if(!prevVenting) {
+    //         prevVenting = true;
+    //         RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
+    //     }
+    // }
+    //
+    // else {
+    //     if(prevVenting) {
+    //         prevVenting = false;
+    //         RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
+    //     }
+    // }
 }
 
 // These functions are the 4 required for minimal RCP implementation

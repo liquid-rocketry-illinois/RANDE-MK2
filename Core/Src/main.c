@@ -31,7 +31,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#include <stdio.h>
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -127,7 +127,23 @@ int main(void) {
     MX_USART3_UART_Init();
     MX_USB_OTG_FS_HCD_Init();
     MX_I2C2_Init();
+
+    // HAL_GPIO_WritePin(TCA_NRST_GPIO_Port, TCA_NRST_Pin, GPIO_PIN_RESET);
+    // HAL_Delay(10);
+    // HAL_GPIO_WritePin(TCA_NRST_GPIO_Port, TCA_NRST_Pin, GPIO_PIN_SET);
+
     /* USER CODE BEGIN 2 */
+    // while(1) {
+    //
+    //     uint8_t data[] = {0x01, 0};
+    //     HAL_StatusTypeDef stat = HAL_I2C_Master_Transmit(&hi2c2, 0x70 << 1, data, 1, HAL_MAX_DELAY);
+    //     // HAL_StatusTypeDef stat = HAL_I2C_Mem_Read(&hi2c2, 0xC0, 0, I2C_MEMADD_SIZE_8BIT, data, 2, HAL_MAX_DELAY);
+    //     // HAL_StatusTypeDef stat = HAL_I2C_Master_Transmit(&hi2c2, 0x70, data, 1, HAL_MAX_DELAY);
+    //
+    //     HAL_I2C_Mem_Read(&hi2c2, 0xC0, 0x00, I2C_MEMADD_SIZE_8BIT, data, 2, HAL_MAX_DELAY);
+    //     printf("Status: %d, Data: %x %x\n", stat, data[0], data[1]);
+    //     HAL_Delay(1000);
+    // }
     // Call the setup and loop functions in main.cpp to transition out of C and into the cpp environment
     setup();
     while(1) loop();
@@ -572,7 +588,7 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(GPIOE, SCH7_Pin | SCH3_Pin | SCH6_Pin | SCH5_Pin | SCH4_Pin | LED2_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOF, SCH1_Pin | SCH2_Pin | SCH0_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOF, TCA_NRST_Pin | SCH1_Pin | SCH2_Pin | SCH0_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOG, MUXA0_Pin | ACT_EN0_Pin | SCH9_Pin | SCH8_Pin, GPIO_PIN_RESET);
@@ -603,8 +619,8 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(USRBTN_GPIO_Port, &GPIO_InitStruct);
 
-    /*Configure GPIO pins : SCH1_Pin SCH2_Pin SCH0_Pin */
-    GPIO_InitStruct.Pin = SCH1_Pin | SCH2_Pin | SCH0_Pin;
+    /*Configure GPIO pins : TCA_NRST_Pin SCH1_Pin SCH2_Pin SCH0_Pin */
+    GPIO_InitStruct.Pin = TCA_NRST_Pin | SCH1_Pin | SCH2_Pin | SCH0_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
