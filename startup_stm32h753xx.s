@@ -170,9 +170,9 @@ g_pfnVectors:
   .word     FDCAN2_IT1_IRQHandler             /* FDCAN2 interrupt line 1      */
   .word     EXTI9_5_IRQHandler                /* External Line[9:5]s          */
   .word     TIM1_BRK_IRQHandler               /* TIM1 Break interrupt         */
-  .word     TIM1_UP_IRQHandler                /* TIM1 Update interrupt        */
+  .word     LC2_UPDATE_IRQ                    /* TIM1 Update interrupt        */
   .word     TIM1_TRG_COM_IRQHandler           /* TIM1 Trigger and Commutation interrupt */
-  .word     TIM1_CC_IRQHandler                /* TIM1 Capture Compare         */
+  .word     LC2_CC_IRQ                        /* TIM1 Capture Compare         */
   .word     TIM2_IRQHandler                   /* TIM2                         */
   .word     TIM3_IRQHandler                   /* TIM3                         */
   .word     TIM4_IRQHandler                   /* TIM4                         */
@@ -185,13 +185,13 @@ g_pfnVectors:
   .word     USART1_IRQHandler                 /* USART1                       */
   .word     USART2_IRQHandler                 /* USART2                       */
   .word     USART3_IRQHandler                 /* USART3                       */
-  .word     EXTI15_10_IRQHandler              /* External Line[15:10]s        */
+  .word     LC_DIN_IRQ                        /* External Line[15:10]s        */
   .word     RTC_Alarm_IRQHandler              /* RTC Alarm (A and B) through EXTI Line */
   .word     0                                 /* Reserved                     */
   .word     TIM8_BRK_TIM12_IRQHandler         /* TIM8 Break and TIM12         */
-  .word     TIM8_UP_TIM13_IRQHandler          /* TIM8 Update and TIM13        */
+  .word     LC1_UPDATE_IRQ                    /* TIM8 Update and TIM13        */
   .word     TIM8_TRG_COM_TIM14_IRQHandler     /* TIM8 Trigger and Commutation and TIM14 */
-  .word     TIM8_CC_IRQHandler                /* TIM8 Capture Compare         */
+  .word     LC1_CC_IRQ                        /* TIM8 Capture Compare         */
   .word     DMA1_Stream7_IRQHandler           /* DMA1 Stream7                 */
   .word     FMC_IRQHandler                    /* FMC                          */
   .word     SDMMC1_IRQHandler                 /* SDMMC1                       */

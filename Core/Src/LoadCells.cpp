@@ -202,7 +202,7 @@ This interrupt is placed on DIN, and detects the falling edge indicating a conve
     occurs, disable the interrupt so it is not constantly triggered when we are reading data. Reset the inputting
     variables, then start the one-shot 25-pulse PWM generation through the timer.
  */
-extern "C" void EXTI15_10_IRQHandler(void) {
+extern "C" void LC_DIN_IRQ(void) {
     using namespace LoadCells;
     // If the interrupt was on the data in pin
     if(__HAL_GPIO_EXTI_GET_IT(C1::dinpin)) {
@@ -232,7 +232,7 @@ extern "C" void EXTI15_10_IRQHandler(void) {
 }
 
 // This interrupt detects when the 25 pulses have finished
-extern "C" void TIM8_UP_TIM13_IRQHandler(void) {
+extern "C" void LC1_UPDATE_IRQ(void) {
     using namespace LoadCells;
     // Acknowledge the interrupt
     C1::timer->SR &= ~TIM_SR_UIF;
@@ -246,7 +246,7 @@ extern "C" void TIM8_UP_TIM13_IRQHandler(void) {
     LL_EXTI_EnableIT_0_31(C1::dinpin);
 }
 
-extern "C" void TIM1_UP_IRQHandler(void) {
+extern "C" void LC2_UPDATE_IRQ(void) {
     using namespace LoadCells;
     C2::timer->SR &= ~TIM_SR_UIF;
     if(C2::inProgressReading & 0x00800000) C2::inProgressReading += 0xFF000000;
@@ -257,7 +257,7 @@ extern "C" void TIM1_UP_IRQHandler(void) {
 // This interrupt is fired whenever the timers CCR and CNT registers are equal, aka at half way through a pulse. If
 //     we are still shifting in data (in the first 24 pulses), read the GPIO and accumulate/shift the in progress
 //     variable.
-extern "C" void TIM8_CC_IRQHandler(void) {
+extern "C" void LC1_CC_IRQ(void) {
     using namespace LoadCells;
     // Acknowledge the interrupt
     C1::timer->SR &= ~TIM_SR_CC2IF;
@@ -272,7 +272,7 @@ extern "C" void TIM8_CC_IRQHandler(void) {
     }
 }
 
-extern "C" void TIM1_CC_IRQHandler(void) {
+extern "C" void LC2_CC_IRQ(void) {
     using namespace LoadCells;
     C2::timer->SR &= ~TIM_SR_CC1IF;
     if(C2::mask > 0) {
