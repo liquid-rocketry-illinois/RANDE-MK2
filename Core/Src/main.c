@@ -127,23 +127,8 @@ int main(void) {
     MX_USART3_UART_Init();
     MX_USB_OTG_FS_HCD_Init();
     MX_I2C2_Init();
-
-    // HAL_GPIO_WritePin(TCA_NRST_GPIO_Port, TCA_NRST_Pin, GPIO_PIN_RESET);
-    // HAL_Delay(10);
-    // HAL_GPIO_WritePin(TCA_NRST_GPIO_Port, TCA_NRST_Pin, GPIO_PIN_SET);
-
     /* USER CODE BEGIN 2 */
-    // while(1) {
-    //
-    //     uint8_t data[] = {0x01, 0};
-    //     HAL_StatusTypeDef stat = HAL_I2C_Master_Transmit(&hi2c2, 0x70 << 1, data, 1, HAL_MAX_DELAY);
-    //     // HAL_StatusTypeDef stat = HAL_I2C_Mem_Read(&hi2c2, 0xC0, 0, I2C_MEMADD_SIZE_8BIT, data, 2, HAL_MAX_DELAY);
-    //     // HAL_StatusTypeDef stat = HAL_I2C_Master_Transmit(&hi2c2, 0x70, data, 1, HAL_MAX_DELAY);
-    //
-    //     HAL_I2C_Mem_Read(&hi2c2, 0xC0, 0x00, I2C_MEMADD_SIZE_8BIT, data, 2, HAL_MAX_DELAY);
-    //     printf("Status: %d, Data: %x %x\n", stat, data[0], data[1]);
-    //     HAL_Delay(1000);
-    // }
+
     // Call the setup and loop functions in main.cpp to transition out of C and into the cpp environment
     setup();
     while(1) loop();

@@ -104,7 +104,7 @@ namespace Transducers {
 
     void init() {
         // Callibrate the ADCs
-        HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_DIFFERENTIAL_ENDED);
+        HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
         HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
 
         // Start the DMA processing. Both ADCs are DMAd into the same array, just at different positions
@@ -119,8 +119,7 @@ namespace Transducers {
         for(uint8_t i = 0; i < NUM_TRANSDUCERS; i++) {
             // Get the PT data from the data array
             const auto& td = transducers[i];
-            // ptdata[i] = data[td.aoff];
-            // continue;
+
             // Grab the value from the DMA data array and convert to volts
             float volts = static_cast<float>(data[td.aoff]) * VREF / static_cast<float>(UINT16_MAX);
 
