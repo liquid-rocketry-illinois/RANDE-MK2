@@ -15,9 +15,9 @@ namespace SimpleActuators {
             {SCH5_GPIO_Port, SCH5_Pin},
             {SCH4_GPIO_Port, SCH4_Pin},
 
-            {SCH8_GPIO_Port, SCH8_Pin},
+            {SCH1_GPIO_Port, SCH1_Pin},
             {SCH9_GPIO_Port, SCH9_Pin},
-            {SCH10_GPIO_Port, SCH10_Pin},
+            {SCH8_GPIO_Port, SCH8_Pin},
             {SCH11_GPIO_Port, SCH11_Pin},
 
             {SCH2_GPIO_Port, SCH2_Pin, true, SCH3_GPIO_Port, SCH3_Pin}

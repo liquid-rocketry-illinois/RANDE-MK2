@@ -40,7 +40,7 @@ namespace Transducers {
             },
             { // PT2
                 .aoff = 7,
-                .psi_per_v = 1,
+                .psi_per_v = 1844.895092f,
                 .voffset = 0
             },
             { // PT3
@@ -51,7 +51,7 @@ namespace Transducers {
             },
             { // PT4
                 .aoff = 9,
-                .psi_per_v = 1838.94488f,
+                .psi_per_v = 617.6467029f,
                 .voffset = 0,
                 .alpha = 0.001
             },
@@ -67,7 +67,7 @@ namespace Transducers {
             },
             { // PT7
                 .aoff = 0,
-                .psi_per_v = 1,
+                .psi_per_v = 1822.684234f,
                 .voffset = 0
             },
             { // PT8
@@ -77,7 +77,7 @@ namespace Transducers {
             },
             { // PT9
                 .aoff = 5,
-                .psi_per_v = 1,
+                .psi_per_v = 1871.12185f,
                 .voffset = 0
             },
             { // PT10

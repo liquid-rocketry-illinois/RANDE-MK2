@@ -43,7 +43,7 @@ extern "C" void setup() {
     RCP::setReady(true);
     SimpleActuators::init();
     Transducers::init();
-    LoadCells::init();
+    // LoadCells::init();
     BoolSensors::init();
     TC::init();
 }
@@ -83,7 +83,7 @@ extern "C" void loop() {
     RCP::yield();
     RCP::runTest();
     Transducers::yield();
-    LoadCells::yield();
+    // LoadCells::yield();
     BoolSensors::yield();
     TC::yield();
 
@@ -173,11 +173,13 @@ namespace Test {
         void initialize() override {
             tstart = RCP::systime();
             RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_ON);
+            RCP::writeSimpleActuator(5, RCP_SIMPLE_ACTUATOR_ON);
         }
 
         void end(bool interrupted) override {
             (void) interrupted;
             RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_OFF);
+            RCP::writeSimpleActuator(5, RCP_SIMPLE_ACTUATOR_OFF);
             char text[60];
             snprintf(text, sizeof(text), "Valve open for: %ldms\n", RCP::systime() - tstart);
             RCP::RCPWriteSerialString(text);
