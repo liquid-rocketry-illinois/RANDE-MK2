@@ -23,10 +23,6 @@ tusb_rhport_init_t TUSB_INIT_DATA = {.role = TUSB_ROLE_DEVICE, .speed = TUSB_SPE
 // This function is declared extern C so that it can be called from the C environment. Otherwise, C++ name
 // mangling would mean the C call to the function would not link
 extern "C" void setup() {
-    // while(HAL_GPIO_ReadPin(USRBTN_GPIO_Port, USRBTN_Pin) != GPIO_PIN_SET);
-    // HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
-    // LoadCells::init();
-    // return;
     // Init tinyusb
     tud_rhport_init(BOARD_TUD_RHPORT, &TUSB_INIT_DATA);
 
@@ -59,11 +55,6 @@ bool prevVenting = false;
 
 // This is also extern C for the same reasons as above
 extern "C" void loop() {
-    // LoadCells::yield();
-    // printf("Val: %f\n", LoadCells::readCell(0));
-    // HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    // HAL_Delay(1000);
-    // return;
     // Make sure to call the tinyusb processing function so it can do its thing. This is why
     // nothing in the code can block
     tud_task_ext(1, false);
@@ -86,21 +77,6 @@ extern "C" void loop() {
     LoadCells::yield();
     BoolSensors::yield();
     TC::yield();
-
-
-    // if(Transducers::readTransducer(2) > VENT_THRESHOLD) {
-    //     if(!prevVenting) {
-    //         prevVenting = true;
-    //         RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
-    //     }
-    // }
-    //
-    // else {
-    //     if(prevVenting) {
-    //         prevVenting = false;
-    //         RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
-    //     }
-    // }
 }
 
 // These functions are the 4 required for minimal RCP implementation
@@ -186,6 +162,8 @@ namespace Test {
         }
 
         bool isFinished() override { return false; }
+
+        ~TimedValves() override = default;
     };
 
     class TimedBW : public Procedure {
@@ -206,17 +184,117 @@ namespace Test {
             snprintf(text, sizeof(text), "Burn wire delay: %ldms\n", RCP::systime() - tstart);
             RCP::RCPWriteSerialString(text);
         }
+
+        ~TimedBW() override = default;
+    };
+
+    class Hotfire : public Procedure {
+        enum class State {
+            INIT,
+            EMATCH_WAIT,
+            BURN_WAIT,
+            FIRE_WAIT,
+            ABORT_WAIT,
+            END
+        } state;
+        uint32_t timer;
+
+        void abort() {
+            RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
+            RCP::writeSimpleActuator(SimpleActuators::SOL_7_id, RCP_SIMPLE_ACTUATOR_ON);
+        }
+
+    public:
+        Hotfire() = default;
+
+        void initialize() override {
+            state = State::INIT;
+        }
+
+        void execute() override {
+            using namespace SimpleActuators;
+
+            switch(state) {
+            case State::INIT:
+                if(RCP::readBoolSensor(0)) {
+                    RCPDebug("[HOTFIRE] Burn Wire detected");
+                    RCPDebug("[HOTFIRE] Setting EMatch");
+                    RCP::writeSimpleActuator(EMATCH_ID, RCP_SIMPLE_ACTUATOR_ON);
+
+                    state = State::EMATCH_WAIT;
+                    timer = HAL_GetTick();
+                }
+
+                else {
+                    RCPDebug("[HOTFIRE] Burn wire not detected!");
+                    state = State::END;
+                }
+                break;
+
+            case State::EMATCH_WAIT:
+                if(HAL_GetTick() - timer > 100) {
+                    state = State::BURN_WAIT;
+                    RCP::writeSimpleActuator(EMATCH_ID, RCP_SIMPLE_ACTUATOR_OFF);
+                    RCPDebug("[HOTFIRE] Ignition complete");
+                }
+                break;
+
+            case State::BURN_WAIT:
+                if(HAL_GetTick() - timer < 5000) {
+                    if(!RCP::readBoolSensor(0)) {
+                        RCP::writeSimpleActuator(SOL_3_id, RCP_SIMPLE_ACTUATOR_ON);
+                        RCP::writeSimpleActuator(SOL_4_id, RCP_SIMPLE_ACTUATOR_ON);
+                        timer = HAL_GetTick();
+                        state = State::FIRE_WAIT;
+                        RCPDebug("[HOTFIRE] Burn wire cut!");
+                        RCPDebug("[HOTFIRE] Starting 30s burn...");
+                    }
+                }
+
+                else {
+                    RCPDebug("[HOTFIRE] Burn wire 5s timeout hit, aborting!");
+                    timer = HAL_GetTick();
+                    state = State::ABORT_WAIT;
+                }
+                break;
+
+            case State::FIRE_WAIT:
+                if(HAL_GetTick() - timer > 30000) {
+                    RCP::writeSimpleActuator(SOL_3_id, RCP_SIMPLE_ACTUATOR_OFF);
+                    RCP::writeSimpleActuator(SOL_4_id, RCP_SIMPLE_ACTUATOR_OFF);
+                    state = State::END;
+                    RCPDebug("[HOTFIRE] Hotfire complete");
+                }
+                break;
+
+            case State::ABORT_WAIT:
+                if(HAL_GetTick() - timer > 30000) {
+                    state = State::END;
+                    abort();
+                }
+                break;
+
+            case State::END:
+                break;
+            }
+        }
+
+        bool isFinished() override {
+            return state == State::END;
+        }
+
+
+        ~Hotfire() override = default;
     };
 
     // Test 1 is a program to open the MBV and track the time they are open for. The time is then printed to console
     // Test 2 is a simple test to open the ball valves at the same time
+
+    // clang-format off
     Tests tests = {
         new TimedBW(),
+         new Hotfire(),
         new TimedValves(),
-        new OneShot([] {
-            RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_ON);
-            RCP::writeSimpleActuator(5, RCP_SIMPLE_ACTUATOR_ON);
-        }),
         new Procedure(),
         new Procedure(),
         new Procedure(),
@@ -231,6 +309,7 @@ namespace Test {
         new Procedure(),
         new Procedure(),
     };
+    // clang-format on
 
     Tests& getTests() { return tests; }
 } // namespace Test
