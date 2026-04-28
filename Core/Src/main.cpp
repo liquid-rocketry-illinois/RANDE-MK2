@@ -20,6 +20,10 @@
 
 tusb_rhport_init_t TUSB_INIT_DATA = {.role = TUSB_ROLE_DEVICE, .speed = TUSB_SPEED_FULL};
 
+namespace Test {
+    extern Procedure* const ESTOP;
+}
+
 // This function is declared extern C so that it can be called from the C environment. Otherwise, C++ name
 // mangling would mean the C call to the function would not link
 extern "C" void setup() {
@@ -37,6 +41,7 @@ extern "C" void setup() {
     // Init the various different parts of the code
     RCP::init();
     RCP::setReady(true);
+    RCP::ESTOP_PROC = Test::ESTOP;
     SimpleActuators::init();
     Transducers::init();
     LoadCells::init();
@@ -142,30 +147,6 @@ void RCP::writeSensorTare(RCP_DeviceClass devclass, uint8_t id, [[maybe_unused]]
 }
 
 namespace Test {
-    class TimedValves : public Procedure {
-        uint32_t tstart = 0;
-
-    public:
-        void initialize() override {
-            tstart = RCP::systime();
-            RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_ON);
-            RCP::writeSimpleActuator(5, RCP_SIMPLE_ACTUATOR_ON);
-        }
-
-        void end(bool interrupted) override {
-            (void) interrupted;
-            RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_OFF);
-            RCP::writeSimpleActuator(5, RCP_SIMPLE_ACTUATOR_OFF);
-            char text[60];
-            snprintf(text, sizeof(text), "Valve open for: %ldms\n", RCP::systime() - tstart);
-            RCP::RCPWriteSerialString(text);
-        }
-
-        bool isFinished() override { return false; }
-
-        ~TimedValves() override = default;
-    };
-
     class TimedBW : public Procedure {
         uint32_t tstart = 0;
 
@@ -189,14 +170,7 @@ namespace Test {
     };
 
     class Hotfire : public Procedure {
-        enum class State {
-            INIT,
-            EMATCH_WAIT,
-            BURN_WAIT,
-            FIRE_WAIT,
-            ABORT_WAIT,
-            END
-        } state;
+        enum class State { INIT, EMATCH_WAIT, BURN_WAIT, FIRE_WAIT, ABORT_WAIT, END } state;
         uint32_t timer;
 
         void abort() {
@@ -207,9 +181,7 @@ namespace Test {
     public:
         Hotfire() = default;
 
-        void initialize() override {
-            state = State::INIT;
-        }
+        void initialize() override { state = State::INIT; }
 
         void execute() override {
             using namespace SimpleActuators;
@@ -279,13 +251,79 @@ namespace Test {
             }
         }
 
-        bool isFinished() override {
-            return state == State::END;
-        }
+        bool isFinished() override { return state == State::END; }
 
 
         ~Hotfire() override = default;
     };
+
+    class DanceMode : public Procedure {
+        uint32_t timer;
+        bool state;
+        RCP_SimpleActuatorState startState;
+
+    public:
+        DanceMode() = default;
+        ~DanceMode() override = default;
+
+        void initialize() override {
+            timer = HAL_GetTick();
+            state = false;
+            startState = RCP::readSimpleActuator(SimpleActuators::SOL_9_id);
+            RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
+        }
+
+        void execute() override {
+            if(HAL_GetTick() - timer > 500) {
+                timer = HAL_GetTick();
+                RCP::writeSimpleActuator(SimpleActuators::SOL_9_id,
+                                         state ? RCP_SIMPLE_ACTUATOR_OFF : RCP_SIMPLE_ACTUATOR_ON);
+                state = !state;
+            }
+        }
+
+        bool isFinished() override { return false; }
+
+        void end(bool interrupted) override {
+            (void) interrupted;
+            RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, startState);
+        }
+    };
+
+    class TimedValves : public Procedure {
+        uint32_t tstart = 0;
+
+    public:
+        void initialize() override {
+            tstart = RCP::systime();
+            RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_ON);
+            RCP::writeSimpleActuator(5, RCP_SIMPLE_ACTUATOR_ON);
+        }
+
+        void end(bool interrupted) override {
+            (void) interrupted;
+            RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_OFF);
+            RCP::writeSimpleActuator(5, RCP_SIMPLE_ACTUATOR_OFF);
+            char text[60];
+            snprintf(text, sizeof(text), "Valve open for: %ldms\n", RCP::systime() - tstart);
+            RCP::RCPWriteSerialString(text);
+        }
+
+        bool isFinished() override { return false; }
+
+        ~TimedValves() override = default;
+    };
+
+    Procedure* const ESTOP = new OneShot([] {
+        using namespace SimpleActuators;
+        RCP::writeSimpleActuator(SOL_1_id, RCP_SIMPLE_ACTUATOR_OFF);
+        RCP::writeSimpleActuator(SOL_2_id, RCP_SIMPLE_ACTUATOR_OFF);
+        RCP::writeSimpleActuator(SOL_3_id, RCP_SIMPLE_ACTUATOR_OFF);
+        RCP::writeSimpleActuator(SOL_4_id, RCP_SIMPLE_ACTUATOR_OFF);
+        RCP::writeSimpleActuator(SOL_7_id, RCP_SIMPLE_ACTUATOR_ON);
+        RCP::writeSimpleActuator(SOL_1_id, RCP_SIMPLE_ACTUATOR_OFF);
+        RCP::writeSimpleActuator(SOL_11_id, RCP_SIMPLE_ACTUATOR_OFF);
+    });
 
     // Test 1 is a program to open the MBV and track the time they are open for. The time is then printed to console
     // Test 2 is a simple test to open the ball valves at the same time
@@ -293,9 +331,9 @@ namespace Test {
     // clang-format off
     Tests tests = {
         new TimedBW(),
-         new Hotfire(),
+        new Hotfire(),
+        new DanceMode(),
         new TimedValves(),
-        new Procedure(),
         new Procedure(),
         new Procedure(),
         new Procedure(),
@@ -310,6 +348,7 @@ namespace Test {
         new Procedure(),
     };
     // clang-format on
+
 
     Tests& getTests() { return tests; }
 } // namespace Test
