@@ -17,6 +17,7 @@ namespace SimpleActuators {
     constexpr uint8_t SOL_7_id = 3;
     constexpr uint8_t SOL_9_id = 4;
     constexpr uint8_t SOL_10_id = 7;
+    constexpr uint8_t SOL_11_id = 8;
 
     struct GPIO {
         GPIO_TypeDef* port;
