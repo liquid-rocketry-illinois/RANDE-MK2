@@ -43,7 +43,7 @@ extern "C" void setup() {
     RCP::setReady(true);
     SimpleActuators::init();
     Transducers::init();
-    // LoadCells::init();
+    LoadCells::init();
     BoolSensors::init();
     TC::init();
 }
@@ -83,7 +83,7 @@ extern "C" void loop() {
     RCP::yield();
     RCP::runTest();
     Transducers::yield();
-    // LoadCells::yield();
+    LoadCells::yield();
     BoolSensors::yield();
     TC::yield();
 

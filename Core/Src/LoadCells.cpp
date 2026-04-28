@@ -7,6 +7,7 @@
 
 #include "RCP_Target/RCP_Target.h"
 
+#include <stdio.h>
 #include "main.h"
 
 namespace LoadCells {
@@ -18,7 +19,7 @@ namespace LoadCells {
             GPIO_TypeDef* const clkport = GPIOC;
             uint16_t const clkpin = GPIO_PIN_6;
 
-            GPIO_TypeDef* const dinport = CELL1_DIN_GPIO_Port;
+            volatile GPIO_TypeDef* const dinport = CELL1_DIN_GPIO_Port;
             uint16_t const dinpin = CELL1_DIN_Pin;
 
             uint32_t inProgressReading = 0;
@@ -26,11 +27,11 @@ namespace LoadCells {
             int32_t rawLatestReading = 0;
 
             float offset = 0;
-            float scale = -0.00000780640124902f * 8.5f;
+            float scale = 0.0003548139897f;
 
             float latestReading = 17.12345f;
 
-            void initCell() {
+            [[maybe_unused]] void initCell() {
                 // Enable Clocks
                 __HAL_RCC_GPIOB_CLK_ENABLE();
                 __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -112,7 +113,7 @@ namespace LoadCells {
             GPIO_TypeDef* const clkport = GPIOE;
             uint16_t const clkpin = GPIO_PIN_9;
 
-            GPIO_TypeDef* dinport = CELL2_DIN_GPIO_Port;
+            GPIO_TypeDef* const dinport = CELL2_DIN_GPIO_Port;
             uint16_t const dinpin = CELL2_DIN_Pin;
 
             uint32_t inProgressReading = 0;
@@ -120,13 +121,13 @@ namespace LoadCells {
             uint32_t mask = 0;
 
             float offset = 0;
-            float scale = 0;
+            float scale = 0.0007038731031;
 
-            float latestReading;
+            float latestReading = 0;
 
             [[maybe_unused]] void initCell() {
                 __HAL_RCC_GPIOE_CLK_ENABLE();
-                __HAL_RCC_GPIOG_CLK_ENABLE();
+                __HAL_RCC_GPIOD_CLK_ENABLE();
                 __HAL_RCC_TIM1_CLK_ENABLE();
 
                 HAL_GPIO_DeInit(GPIOE, GPIO_PIN_9);
@@ -170,7 +171,7 @@ namespace LoadCells {
 
     void init() {
         C1::initCell();
-        // C2::initCell();
+        C2::initCell();
     }
 
     void yield() {
@@ -180,18 +181,19 @@ namespace LoadCells {
         if(RCP::getDataStreaming() && HAL_GetTick() - lastLogged > 10) {
             lastLogged = HAL_GetTick();
             RCP::sendOneFloat(RCP_DEVCLASS_LOAD_CELL, 0, readCell(0));
-            // RCP::sendOneFloat(RCP_DEVCLASS_LOAD_CELL, 1, readCell(1));
+            RCP::sendOneFloat(RCP_DEVCLASS_LOAD_CELL, 1, readCell(1));
         }
     }
 
     float readCell(uint8_t id) {
         if(id == 0) return C1::latestReading;
-        // if(id == 1) return C2::latestReading;
+        if(id == 1) return C2::latestReading;
         return 0;
     }
 
     void tareCell(uint8_t id, float offset) {
         if(id == 0) C1::offset -= offset;
+        else if(id == 1) C2::offset -= offset;
     }
 
 
@@ -223,7 +225,9 @@ extern "C" void LC_DIN_IRQ(void) {
 
     else if(__HAL_GPIO_EXTI_GET_IT(C2::dinpin)) {
         __HAL_GPIO_EXTI_CLEAR_IT(C2::dinpin);
-        LL_EXTI_DisableEvent_0_31(C2::dinpin);
+        LL_EXTI_DisableIT_0_31(C2::dinpin);
+
+        // LL_EXTI_DisableIT_0_31(C1::dinpin);
         C2::inProgressReading = 0;
         C2::timer->CNT = 0;
         C2::mask = 0x00800000;
@@ -250,8 +254,8 @@ extern "C" void LC2_UPDATE_IRQ(void) {
     using namespace LoadCells;
     C2::timer->SR &= ~TIM_SR_UIF;
     if(C2::inProgressReading & 0x00800000) C2::inProgressReading += 0xFF000000;
-    C1::rawLatestReading = static_cast<int32_t>(C2::inProgressReading);
-    LL_EXTI_EnableEvent_0_31(C2::dinpin);
+    C2::rawLatestReading = static_cast<int32_t>(C2::inProgressReading);
+    LL_EXTI_EnableIT_0_31(C2::dinpin);
 }
 
 // This interrupt is fired whenever the timers CCR and CNT registers are equal, aka at half way through a pulse. If
@@ -274,7 +278,7 @@ extern "C" void LC1_CC_IRQ(void) {
 
 extern "C" void LC2_CC_IRQ(void) {
     using namespace LoadCells;
-    C2::timer->SR &= ~TIM_SR_CC1IF;
+    C2::timer->SR &= ~TIM_SR_CC2IF;
     if(C2::mask > 0) {
         if(C2::dinport->IDR & C2::dinpin) C2::inProgressReading |= C2::mask;
         C2::mask >>= 1;
