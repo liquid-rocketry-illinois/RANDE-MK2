@@ -137,10 +137,6 @@ void RCP::writeSensorTare(RCP_DeviceClass devclass, uint8_t id, [[maybe_unused]]
         Transducers::tare(id, tareVal);
         break;
 
-    case RCP_DEVCLASS_TEMPERATURE:
-        TC::tareTC(id, tareVal);
-        break;
-
     default:
         break;
     }

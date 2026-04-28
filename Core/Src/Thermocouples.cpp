@@ -57,7 +57,6 @@ namespace TC {
 
         bool ready[NUM_TC];
         float latestReading[NUM_TC];
-        float offsets[NUM_TC];
 
         uint32_t lastPoll = 0;
 
@@ -130,6 +129,4 @@ namespace TC {
     }
 
     float readTC(uint8_t id) { return latestReading[id]; }
-
-    void tareTC(uint8_t id, float offset) { offsets[id] += offset; }
 } // namespace TC

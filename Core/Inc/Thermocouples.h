@@ -10,7 +10,6 @@ namespace TC {
     void yield();
 
     float readTC(uint8_t id);
-    void tareTC(uint8_t id, float offset);
 }
 
 #endif // RANDE_MK2_THERMOCOUPLES_H
