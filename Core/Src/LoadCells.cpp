@@ -27,7 +27,7 @@ namespace LoadCells {
             int32_t rawLatestReading = 0;
 
             float offset = 0;
-            float scale = 0.0003548139897f;
+            float scale = 0.0001532810009f;
 
             float latestReading = 17.12345f;
 
@@ -121,7 +121,7 @@ namespace LoadCells {
             uint32_t mask = 0;
 
             float offset = 0;
-            float scale = 0.0007038731031;
+            float scale = 0.0001528591418f;
 
             float latestReading = 0;
 
