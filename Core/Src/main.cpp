@@ -166,7 +166,7 @@ namespace Test {
     };
 
     class Hotfire : public Procedure {
-        enum class State { INIT, EMATCH_WAIT, BURN_WAIT, FIRE_WAIT, ABORT_WAIT, END } state;
+        enum class State { INIT, EMATCH_WAIT, BURN_WAIT, OX_WAIT, FIRE_WAIT, END } state;
         uint32_t timer;
 
         void abort() {
@@ -210,10 +210,9 @@ namespace Test {
             case State::BURN_WAIT:
                 if(HAL_GetTick() - timer < 5000) {
                     if(!RCP::readBoolSensor(0)) {
-                        RCP::writeSimpleActuator(SOL_3_id, RCP_SIMPLE_ACTUATOR_ON);
                         RCP::writeSimpleActuator(SOL_4_id, RCP_SIMPLE_ACTUATOR_ON);
                         timer = HAL_GetTick();
-                        state = State::FIRE_WAIT;
+                        state = State::OX_WAIT;
                         RCPDebug("[HOTFIRE] Burn wire cut!");
                         RCPDebug("[HOTFIRE] Starting 30s burn...");
                     }
@@ -222,26 +221,21 @@ namespace Test {
                 else {
                     RCPDebug("[HOTFIRE] Burn wire 5s timeout hit, aborting!");
                     timer = HAL_GetTick();
-                    state = State::ABORT_WAIT;
+                    state = State::END;
                 }
+                break;
+
+            case State::OX_WAIT:
+                if(HAL_GetTick() - timer > 500) {
+                    RCP::writeSimpleActuator(SOL_3_id, RCP_SIMPLE_ACTUATOR_ON);
+                    RCPDebug("[HOTFIRE] Opening OX MBV");
+                    timer = HAL_GetTick();
+                    state = State::FIRE_WAIT;
+                }
+
                 break;
 
             case State::FIRE_WAIT:
-                if(HAL_GetTick() - timer > 30000) {
-                    RCP::writeSimpleActuator(SOL_3_id, RCP_SIMPLE_ACTUATOR_OFF);
-                    RCP::writeSimpleActuator(SOL_4_id, RCP_SIMPLE_ACTUATOR_OFF);
-                    state = State::END;
-                    RCPDebug("[HOTFIRE] Hotfire complete");
-                }
-                break;
-
-            case State::ABORT_WAIT:
-                if(HAL_GetTick() - timer > 30000) {
-                    state = State::END;
-                    abort();
-                }
-                break;
-
             case State::END:
                 break;
             }
@@ -249,6 +243,12 @@ namespace Test {
 
         bool isFinished() override { return state == State::END; }
 
+        void end(bool interrupted) override {
+            if(interrupted) {
+                RCP::writeSimpleActuator(SimpleActuators::SOL_3_id, RCP_SIMPLE_ACTUATOR_OFF);
+                RCP::writeSimpleActuator(SimpleActuators::SOL_4_id, RCP_SIMPLE_ACTUATOR_OFF);
+            }
+        }
 
         ~Hotfire() override = default;
     };
@@ -317,7 +317,7 @@ namespace Test {
         RCP::writeSimpleActuator(SOL_3_id, RCP_SIMPLE_ACTUATOR_OFF);
         RCP::writeSimpleActuator(SOL_4_id, RCP_SIMPLE_ACTUATOR_OFF);
         RCP::writeSimpleActuator(SOL_7_id, RCP_SIMPLE_ACTUATOR_ON);
-        RCP::writeSimpleActuator(SOL_1_id, RCP_SIMPLE_ACTUATOR_OFF);
+        RCP::writeSimpleActuator(SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
         RCP::writeSimpleActuator(SOL_11_id, RCP_SIMPLE_ACTUATOR_OFF);
     });
 
