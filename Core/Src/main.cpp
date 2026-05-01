@@ -200,7 +200,7 @@ namespace Test {
                 break;
 
             case State::EMATCH_WAIT:
-                if(HAL_GetTick() - timer > 100) {
+                if(HAL_GetTick() - timer > 250) {
                     state = State::BURN_WAIT;
                     RCP::writeSimpleActuator(EMATCH_ID, RCP_SIMPLE_ACTUATOR_OFF);
                     RCPDebug("[HOTFIRE] Ignition complete");
