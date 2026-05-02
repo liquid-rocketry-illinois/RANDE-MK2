@@ -143,6 +143,8 @@ void RCP::writeSensorTare(RCP_DeviceClass devclass, uint8_t id, [[maybe_unused]]
 }
 
 namespace Test {
+    float MBV_DELAY = 500;
+
     class TimedBW : public Procedure {
         uint32_t tstart = 0;
 
@@ -226,7 +228,7 @@ namespace Test {
                 break;
 
             case State::OX_WAIT:
-                if(HAL_GetTick() - timer > 500) {
+                if(HAL_GetTick() - timer > MBV_DELAY) {
                     RCP::writeSimpleActuator(SOL_3_id, RCP_SIMPLE_ACTUATOR_ON);
                     RCPDebug("[HOTFIRE] Opening OX MBV");
                     timer = HAL_GetTick();
@@ -288,18 +290,28 @@ namespace Test {
 
     class TimedValves : public Procedure {
         uint32_t tstart = 0;
+        bool state = 0;
 
     public:
         void initialize() override {
-            tstart = RCP::systime();
-            RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_ON);
-            RCP::writeSimpleActuator(5, RCP_SIMPLE_ACTUATOR_ON);
+            tstart = HAL_GetTick();
+            state = false;
+            RCP::writeSimpleActuator(SimpleActuators::SOL_4_id, RCP_SIMPLE_ACTUATOR_ON);
+            RCPDebug("Start Flow");
+        }
+
+        void execute() override {
+            if(!state && HAL_GetTick() - tstart > MBV_DELAY) {
+                state = true;
+                RCP::writeSimpleActuator(SimpleActuators::SOL_3_id, RCP_SIMPLE_ACTUATOR_ON);
+                RCPDebug("Opening OX");
+            }
         }
 
         void end(bool interrupted) override {
             (void) interrupted;
-            RCP::writeSimpleActuator(6, RCP_SIMPLE_ACTUATOR_OFF);
-            RCP::writeSimpleActuator(5, RCP_SIMPLE_ACTUATOR_OFF);
+            RCP::writeSimpleActuator(SimpleActuators::SOL_3_id, RCP_SIMPLE_ACTUATOR_OFF);
+            RCP::writeSimpleActuator(SimpleActuators::SOL_4_id, RCP_SIMPLE_ACTUATOR_OFF);
             char text[60];
             snprintf(text, sizeof(text), "Valve open for: %ldms\n", RCP::systime() - tstart);
             RCP::RCPWriteSerialString(text);
@@ -309,6 +321,29 @@ namespace Test {
 
         ~TimedValves() override = default;
     };
+
+    class MBVDelaySetter : public Procedure {
+        static bool pdReturned;
+
+        static void PA(const RCP::PromptData& data) {
+            pdReturned = true;
+            MBV_DELAY = data.floatData;
+        }
+
+    public:
+        ~MBVDelaySetter() override = default;
+
+        void initialize() override {
+            pdReturned = false;
+            RCP::setPrompt("Ball Valve Delay (ms)", RCP_PromptDataType_Float, PA);
+        }
+
+        bool isFinished() override {
+            return pdReturned;
+        }
+    };
+
+    bool MBVDelaySetter::pdReturned = false;
 
     Procedure* const ESTOP = new OneShot([] {
         using namespace SimpleActuators;
@@ -330,7 +365,7 @@ namespace Test {
         new Hotfire(),
         new DanceMode(),
         new TimedValves(),
-        new Procedure(),
+        new MBVDelaySetter(),
         new Procedure(),
         new Procedure(),
         new Procedure(),
