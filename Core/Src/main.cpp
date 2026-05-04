@@ -143,7 +143,7 @@ void RCP::writeSensorTare(RCP_DeviceClass devclass, uint8_t id, [[maybe_unused]]
 }
 
 namespace Test {
-    float MBV_DELAY = 500;
+    float MBV_DELAY = 700;
 
     class TimedBW : public Procedure {
         uint32_t tstart = 0;
@@ -176,8 +176,10 @@ namespace Test {
             RCP::writeSimpleActuator(SimpleActuators::SOL_7_id, RCP_SIMPLE_ACTUATOR_ON);
         }
 
+        const bool autoOff;
+
     public:
-        Hotfire() = default;
+        Hotfire(bool autoOff = false) : autoOff(autoOff) {};
 
         void initialize() override { state = State::INIT; }
 
@@ -238,6 +240,14 @@ namespace Test {
                 break;
 
             case State::FIRE_WAIT:
+                if(autoOff && HAL_GetTick() - timer > 10000) {
+                    RCP::writeSimpleActuator(SOL_3_id, RCP_SIMPLE_ACTUATOR_OFF);
+                    RCP::writeSimpleActuator(SOL_4_id, RCP_SIMPLE_ACTUATOR_OFF);
+                    RCPDebug("[HOTFIRE] autoclosed ball valves after 10s");
+                    state = State::END;
+                }
+                break;
+
             case State::END:
                 break;
             }
@@ -366,7 +376,7 @@ namespace Test {
         new DanceMode(),
         new TimedValves(),
         new MBVDelaySetter(),
-        new Procedure(),
+        new Hotfire(true),
         new Procedure(),
         new Procedure(),
         new Procedure(),
