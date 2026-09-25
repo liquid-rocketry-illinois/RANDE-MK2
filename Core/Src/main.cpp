@@ -151,14 +151,14 @@ namespace Test {
     public:
         void initialize() override {
             tstart = RCP::systime();
-            RCP::writeSimpleActuator(2, RCP_SIMPLE_ACTUATOR_ON);
+            RCP::writeDiscreteActuator(SimpleActuators::EMATCH_ID, true);
         }
 
         bool isFinished() override { return !RCP::readBoolSensor(0); }
 
         void end(bool interrupted) override {
             (void) interrupted;
-            RCP::writeSimpleActuator(2, RCP_SIMPLE_ACTUATOR_OFF);
+            RCP::writeDiscreteActuator(SimpleActuators::EMATCH_ID, false);
             char text[60];
             snprintf(text, sizeof(text), "Burn wire delay: %ldms\n", RCP::systime() - tstart);
             RCP::RCPWriteSerialString(text);
@@ -172,8 +172,8 @@ namespace Test {
         uint32_t timer;
 
         void abort() {
-            RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
-            RCP::writeSimpleActuator(SimpleActuators::SOL_7_id, RCP_SIMPLE_ACTUATOR_ON);
+            RCP::writeDiscreteActuator(SimpleActuators::SOL_9_id, false);
+            RCP::writeDiscreteActuator(SimpleActuators::SOL_7_id, true);
         }
 
         const bool autoOff;
@@ -191,7 +191,7 @@ namespace Test {
                 if(RCP::readBoolSensor(0)) {
                     RCPDebug("[HOTFIRE] Burn Wire detected");
                     RCPDebug("[HOTFIRE] Setting EMatch");
-                    RCP::writeSimpleActuator(EMATCH_ID, RCP_SIMPLE_ACTUATOR_ON);
+                    RCP::writeDiscreteActuator(EMATCH_ID, true);
 
                     state = State::EMATCH_WAIT;
                     timer = HAL_GetTick();
@@ -206,7 +206,7 @@ namespace Test {
             case State::EMATCH_WAIT:
                 if(HAL_GetTick() - timer > 250) {
                     state = State::BURN_WAIT;
-                    RCP::writeSimpleActuator(EMATCH_ID, RCP_SIMPLE_ACTUATOR_OFF);
+                    RCP::writeDiscreteActuator(EMATCH_ID, false);
                     RCPDebug("[HOTFIRE] Ignition complete");
                 }
                 break;
@@ -214,7 +214,7 @@ namespace Test {
             case State::BURN_WAIT:
                 if(HAL_GetTick() - timer < 5000) {
                     if(!RCP::readBoolSensor(0)) {
-                        RCP::writeSimpleActuator(SOL_4_id, RCP_SIMPLE_ACTUATOR_ON);
+                        RCP::writeDiscreteActuator(SOL_4_id, true);
                         timer = HAL_GetTick();
                         state = State::OX_WAIT;
                         RCPDebug("[HOTFIRE] Burn wire cut!");
@@ -231,7 +231,7 @@ namespace Test {
 
             case State::OX_WAIT:
                 if(HAL_GetTick() - timer > MBV_DELAY) {
-                    RCP::writeSimpleActuator(SOL_3_id, RCP_SIMPLE_ACTUATOR_ON);
+                    RCP::writeDiscreteActuator(SOL_3_id, true);
                     RCPDebug("[HOTFIRE] Opening OX MBV");
                     timer = HAL_GetTick();
                     state = State::FIRE_WAIT;
@@ -241,8 +241,8 @@ namespace Test {
 
             case State::FIRE_WAIT:
                 if(autoOff && HAL_GetTick() - timer > 10000) {
-                    RCP::writeSimpleActuator(SOL_3_id, RCP_SIMPLE_ACTUATOR_OFF);
-                    RCP::writeSimpleActuator(SOL_4_id, RCP_SIMPLE_ACTUATOR_OFF);
+                    RCP::writeDiscreteActuator(SOL_3_id, false);
+                    RCP::writeDiscreteActuator(SOL_4_id, false);
                     RCPDebug("[HOTFIRE] autoclosed ball valves after 10s");
                     state = State::END;
                 }
@@ -257,8 +257,8 @@ namespace Test {
 
         void end(bool interrupted) override {
             if(interrupted) {
-                RCP::writeSimpleActuator(SimpleActuators::SOL_3_id, RCP_SIMPLE_ACTUATOR_OFF);
-                RCP::writeSimpleActuator(SimpleActuators::SOL_4_id, RCP_SIMPLE_ACTUATOR_OFF);
+                RCP::writeDiscreteActuator(SimpleActuators::SOL_3_id, false);
+                RCP::writeDiscreteActuator(SimpleActuators::SOL_4_id, false);
             }
         }
 
@@ -268,7 +268,7 @@ namespace Test {
     class DanceMode : public Procedure {
         uint32_t timer;
         bool state;
-        RCP_SimpleActuatorState startState;
+        bool startState;
 
     public:
         DanceMode() = default;
@@ -277,15 +277,14 @@ namespace Test {
         void initialize() override {
             timer = HAL_GetTick();
             state = false;
-            startState = RCP::readSimpleActuator(SimpleActuators::SOL_9_id);
-            RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
+            startState = RCP::readDiscreteActuator(SimpleActuators::SOL_9_id);
+            RCP::writeDiscreteActuator(SimpleActuators::SOL_9_id, false);
         }
 
         void execute() override {
             if(HAL_GetTick() - timer > 500) {
                 timer = HAL_GetTick();
-                RCP::writeSimpleActuator(SimpleActuators::SOL_9_id,
-                                         state ? RCP_SIMPLE_ACTUATOR_OFF : RCP_SIMPLE_ACTUATOR_ON);
+                RCP::writeDiscreteActuator(SimpleActuators::SOL_9_id, !state);
                 state = !state;
             }
         }
@@ -294,7 +293,7 @@ namespace Test {
 
         void end(bool interrupted) override {
             (void) interrupted;
-            RCP::writeSimpleActuator(SimpleActuators::SOL_9_id, startState);
+            RCP::writeDiscreteActuator(SimpleActuators::SOL_9_id, startState);
         }
     };
 
@@ -306,22 +305,22 @@ namespace Test {
         void initialize() override {
             tstart = HAL_GetTick();
             state = false;
-            RCP::writeSimpleActuator(SimpleActuators::SOL_4_id, RCP_SIMPLE_ACTUATOR_ON);
+            RCP::writeDiscreteActuator(SimpleActuators::SOL_4_id, true);
             RCPDebug("Start Flow");
         }
 
         void execute() override {
             if(!state && HAL_GetTick() - tstart > MBV_DELAY) {
                 state = true;
-                RCP::writeSimpleActuator(SimpleActuators::SOL_3_id, RCP_SIMPLE_ACTUATOR_ON);
+                RCP::writeDiscreteActuator(SimpleActuators::SOL_3_id, true);
                 RCPDebug("Opening OX");
             }
         }
 
         void end(bool interrupted) override {
             (void) interrupted;
-            RCP::writeSimpleActuator(SimpleActuators::SOL_3_id, RCP_SIMPLE_ACTUATOR_OFF);
-            RCP::writeSimpleActuator(SimpleActuators::SOL_4_id, RCP_SIMPLE_ACTUATOR_OFF);
+            RCP::writeDiscreteActuator(SimpleActuators::SOL_3_id, false);
+            RCP::writeDiscreteActuator(SimpleActuators::SOL_4_id, false);
             char text[60];
             snprintf(text, sizeof(text), "Valve open for: %ldms\n", RCP::systime() - tstart);
             RCP::RCPWriteSerialString(text);
@@ -348,22 +347,20 @@ namespace Test {
             RCP::setPrompt("Ball Valve Delay (ms)", RCP_PromptDataType_Float, PA);
         }
 
-        bool isFinished() override {
-            return pdReturned;
-        }
+        bool isFinished() override { return pdReturned; }
     };
 
     bool MBVDelaySetter::pdReturned = false;
 
     Procedure* const ESTOP = new OneShot([] {
         using namespace SimpleActuators;
-        RCP::writeSimpleActuator(SOL_1_id, RCP_SIMPLE_ACTUATOR_OFF);
-        RCP::writeSimpleActuator(SOL_2_id, RCP_SIMPLE_ACTUATOR_OFF);
-        RCP::writeSimpleActuator(SOL_3_id, RCP_SIMPLE_ACTUATOR_OFF);
-        RCP::writeSimpleActuator(SOL_4_id, RCP_SIMPLE_ACTUATOR_OFF);
-        RCP::writeSimpleActuator(SOL_7_id, RCP_SIMPLE_ACTUATOR_ON);
-        RCP::writeSimpleActuator(SOL_9_id, RCP_SIMPLE_ACTUATOR_OFF);
-        RCP::writeSimpleActuator(SOL_11_id, RCP_SIMPLE_ACTUATOR_OFF);
+        RCP::writeDiscreteActuator(SOL_1_id, false);
+        RCP::writeDiscreteActuator(SOL_2_id, false);
+        RCP::writeDiscreteActuator(SOL_3_id, false);
+        RCP::writeDiscreteActuator(SOL_4_id, false);
+        RCP::writeDiscreteActuator(SOL_7_id, true);
+        RCP::writeDiscreteActuator(SOL_9_id, false);
+        RCP::writeDiscreteActuator(SOL_11_id, false);
     });
 
     // Test 1 is a program to open the MBV and track the time they are open for. The time is then printed to console

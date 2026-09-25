@@ -141,5 +141,5 @@ namespace Transducers {
 
     float readTransducer(uint8_t id) { return ptdata[id]; }
 
-    void tare(uint8_t id, float offset) { transducers[id].voffset -= offset; }
+    void tare(uint8_t id, float offset) { transducers[id].voffset += offset; }
 } // namespace Transducers

@@ -192,8 +192,8 @@ namespace LoadCells {
     }
 
     void tareCell(uint8_t id, float offset) {
-        if(id == 0) C1::offset -= offset;
-        else if(id == 1) C2::offset -= offset;
+        if(id == 0) C1::offset += offset;
+        else if(id == 1) C2::offset += offset;
     }
 
 
