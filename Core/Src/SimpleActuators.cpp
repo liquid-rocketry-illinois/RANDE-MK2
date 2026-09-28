@@ -25,7 +25,7 @@ namespace SimpleActuators {
         // clang-format on
 
         // States for all the actuators
-        RCP_SimpleActuatorState states[NUM_ACTS];
+        uint8_t states[NUM_ACTS];
 
         // Simple check for initialization
         bool inited = false;
@@ -55,10 +55,9 @@ namespace SimpleActuators {
 } // namespace SimpleActuators
 
 // Callbacks for writes and reads to the actuators
-RCP_SimpleActuatorState RCP::simpleActuatorWrite_CLBK(uint8_t id, RCP_SimpleActuatorState state) {
-    if(state == RCP_SIMPLE_ACTUATOR_TOGGLE)
-        SimpleActuators::states[id] = SimpleActuators::states[id] ? RCP_SIMPLE_ACTUATOR_OFF : RCP_SIMPLE_ACTUATOR_ON;
-    else SimpleActuators::states[id] = state;
+uint8_t RCP::discreteActuatorWrite_CLBK(uint8_t id, uint8_t state) {
+    if(!SimpleActuators::inited) return 0;
+    SimpleActuators::states[id] = state;
 
     HAL_GPIO_WritePin(SimpleActuators::ACT_PINS[id].port, SimpleActuators::ACT_PINS[id].pin,
                       SimpleActuators::states[id] ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -66,8 +65,10 @@ RCP_SimpleActuatorState RCP::simpleActuatorWrite_CLBK(uint8_t id, RCP_SimpleActu
     if(SimpleActuators::ACT_PINS[id].dual)
         HAL_GPIO_WritePin(SimpleActuators::ACT_PINS[id].port2, SimpleActuators::ACT_PINS[id].pin2,
                           SimpleActuators::states[id] ? GPIO_PIN_RESET : GPIO_PIN_SET);
-
     return SimpleActuators::states[id];
 }
 
-RCP_SimpleActuatorState RCP::readSimpleActuator(uint8_t id) { return SimpleActuators::states[id]; }
+uint8_t RCP::readDiscreteActuator(uint8_t id) {
+    if(!SimpleActuators::inited) return 0;
+    return SimpleActuators::states[id];
+}
