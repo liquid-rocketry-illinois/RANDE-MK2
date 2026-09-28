@@ -25,8 +25,11 @@ namespace Transducers {
             const uint8_t aoff;
             const float psi_per_v;
             float voffset;
-            const float alpha = 0.0001; // Filter value
+            const float alpha = 0.00004999; // Filter value
+            // alpha = 2pi * f(cutoff) * T
+            // evaluated for 5hz cutoff frequency and 10khz sampling rate
         };
+
 
         // Array containint config data for each PT. Array index matches RCP id. aoff refers to the offset into the
         // `data` array down below that contains the data for that particular PT (i.e. which pin on the MCU the
