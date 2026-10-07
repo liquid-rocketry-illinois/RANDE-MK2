@@ -604,6 +604,12 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(USRBTN_GPIO_Port, &GPIO_InitStruct);
 
+    /*Configure GPIO pin : CELL6_DIN_Pin */
+    GPIO_InitStruct.Pin = CELL6_DIN_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(CELL6_DIN_GPIO_Port, &GPIO_InitStruct);
+
     /*Configure GPIO pins : TCA_NRST_Pin SCH1_Pin SCH2_Pin SCH0_Pin */
     GPIO_InitStruct.Pin = TCA_NRST_Pin | SCH1_Pin | SCH2_Pin | SCH0_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -618,6 +624,12 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
+    /*Configure GPIO pin : CELL4_DIN_Pin */
+    GPIO_InitStruct.Pin = CELL4_DIN_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(CELL4_DIN_GPIO_Port, &GPIO_InitStruct);
+
     /*Configure GPIO pins : SCOPE_Pin LED_Pin */
     GPIO_InitStruct.Pin = SCOPE_Pin | LED_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -631,6 +643,12 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(CELL1_DIN_GPIO_Port, &GPIO_InitStruct);
 
+    /*Configure GPIO pin : CELL5_DIN_Pin */
+    GPIO_InitStruct.Pin = CELL5_DIN_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(CELL5_DIN_GPIO_Port, &GPIO_InitStruct);
+
     /*Configure GPIO pins : SCH15_Pin SCH14_Pin SCH13_Pin SCH12_Pin
                              SCH11_Pin */
     GPIO_InitStruct.Pin = SCH15_Pin | SCH14_Pin | SCH13_Pin | SCH12_Pin | SCH11_Pin;
@@ -638,6 +656,12 @@ static void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    /*Configure GPIO pin : CELL3_DIN_Pin */
+    GPIO_InitStruct.Pin = CELL3_DIN_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(CELL3_DIN_GPIO_Port, &GPIO_InitStruct);
 
     /*Configure GPIO pin : SCOPE2_Pin */
     GPIO_InitStruct.Pin = SCOPE2_Pin;
@@ -666,8 +690,8 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_Init(CELL2_DIN_GPIO_Port, &GPIO_InitStruct);
 
     /* EXTI interrupt init*/
-    HAL_NVIC_SetPriority(CELL2_DIN_EXTI_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(CELL2_DIN_EXTI_IRQn);
+    HAL_NVIC_SetPriority(CELL3_DIN_EXTI_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(CELL3_DIN_EXTI_IRQn);
 
     /* USER CODE BEGIN MX_GPIO_Init_2 */
 

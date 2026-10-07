@@ -70,6 +70,9 @@ void loop(void);
 #define SCH4_GPIO_Port GPIOE
 #define USRBTN_Pin GPIO_PIN_13
 #define USRBTN_GPIO_Port GPIOC
+#define CELL6_DIN_Pin GPIO_PIN_14
+#define CELL6_DIN_GPIO_Port GPIOC
+#define CELL6_DIN_EXTI_IRQn EXTI15_10_IRQn
 #define TCA_NRST_Pin GPIO_PIN_2
 #define TCA_NRST_GPIO_Port GPIOF
 #define SCH1_Pin GPIO_PIN_7
@@ -82,6 +85,9 @@ void loop(void);
 #define MUXA0_GPIO_Port GPIOG
 #define ACT_EN0_Pin GPIO_PIN_1
 #define ACT_EN0_GPIO_Port GPIOG
+#define CELL4_DIN_Pin GPIO_PIN_11
+#define CELL4_DIN_GPIO_Port GPIOB
+#define CELL4_DIN_EXTI_IRQn EXTI15_10_IRQn
 #define SCOPE_Pin GPIO_PIN_12
 #define SCOPE_GPIO_Port GPIOB
 #define LED_Pin GPIO_PIN_14
@@ -89,6 +95,9 @@ void loop(void);
 #define CELL1_DIN_Pin GPIO_PIN_15
 #define CELL1_DIN_GPIO_Port GPIOB
 #define CELL1_DIN_EXTI_IRQn EXTI15_10_IRQn
+#define CELL5_DIN_Pin GPIO_PIN_13
+#define CELL5_DIN_GPIO_Port GPIOD
+#define CELL5_DIN_EXTI_IRQn EXTI15_10_IRQn
 #define SCH9_Pin GPIO_PIN_2
 #define SCH9_GPIO_Port GPIOG
 #define SCH8_Pin GPIO_PIN_3
@@ -97,6 +106,9 @@ void loop(void);
 #define SCH15_GPIO_Port GPIOC
 #define SCH14_Pin GPIO_PIN_9
 #define SCH14_GPIO_Port GPIOC
+#define CELL3_DIN_Pin GPIO_PIN_10
+#define CELL3_DIN_GPIO_Port GPIOA
+#define CELL3_DIN_EXTI_IRQn EXTI15_10_IRQn
 #define SCOPE2_Pin GPIO_PIN_15
 #define SCOPE2_GPIO_Port GPIOA
 #define SCH13_Pin GPIO_PIN_10

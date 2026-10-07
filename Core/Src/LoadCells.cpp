@@ -1,5 +1,7 @@
 #include "LoadCells.h"
 
+#include <numbers>
+
 #include "stm32h7xx.h"
 #include "stm32h7xx_hal_rcc.h"
 #include "stm32h7xx_hal_tim.h"
@@ -9,7 +11,90 @@
 
 #include <stdio.h>
 #include "main.h"
+namespace CellsNew {
+    struct ChannelCell {
+        // pulse count since initialization and timer output channel
+        int pulseCount = 0;
+        uint32_t timch;
 
+        // clock port and pin
+        GPIO_TypeDef* clkport;
+        uint16_t clkpin;
+
+        // d_in port and pin
+        GPIO_TypeDef* dinport;
+        uint16_t dinpin;
+
+        // data reading variables
+        uint32_t inProgressReading = 0;
+        uint32_t mask = 0;
+        int32_t rawLatestReading = 0;
+    };
+    namespace AdvancedControlTimers {
+
+        namespace T1 {
+            TIM_TypeDef* const timer = TIM1;
+
+            // initializes timer
+            [[maybe_unused]] void initTimer(ChannelCell* const cell) {
+                // enable clocks
+                __HAL_RCC_TIM1_CLK_ENABLE();
+
+                // Deinitializes peripheral registers and resets to default state
+                HAL_GPIO_DeInit(cell->clkport, cell->clkpin);
+                GPIO_InitTypeDef init;
+
+                // Set clk to SCK output pin. Din configured by CubeMX (Jacob thinks interrupts are hard)
+                init.Pin = (cell->clkpin);
+                init.Mode = GPIO_MODE_AF_PP;
+                init.Pull = GPIO_NOPULL;
+                init.Alternate = GPIO_AF1_TIM1;
+                HAL_GPIO_Init(cell->clkport, &init);
+
+                // Disable timer
+                timer->CR1 &= ~TIM_CR1_CEN;
+
+                // set PSC, ARR, and CNT. Send that shit to the shadow realm. Set UDIS
+            }
+
+            // connect output channel
+            [[maybe_unused]] void conChannel(ChannelCell* const cell) {}
+
+            // disconnect output channel
+            [[maybe_unused]] void disChannel(ChannelCell* const cell) {}
+        } // namespace T1
+        namespace T2 {}
+
+        // scale data
+        void yield() {}
+
+        // read data
+        void readCell() {}
+
+        // tare cells for RCI
+        void tareCell() {}
+    } // namespace AdvancedControlTimers
+
+    // global functions here
+
+    // ChannelCell Initializations
+    ChannelCell C1{0, TIM_CHANNEL_1, GPIOC, GPIO_PIN_6, CELL1_DIN_GPIO_Port, CELL1_DIN_Pin};
+    ChannelCell C2{0, TIM_CHANNEL_2, GPIOE, GPIO_PIN_9, CELL2_DIN_GPIO_Port, CELL2_DIN_Pin};
+    ChannelCell C3{0, TIM_CHANNEL_3, GPIOB, GPIO_PIN_3, CELL3_DIN_GPIO_Port, CELL3_DIN_Pin};
+    ChannelCell C4{0, TIM_CHANNEL_4, GPIOB, GPIO_PIN_10, CELL4_DIN_GPIO_Port, CELL4_DIN_Pin};
+    ChannelCell C5{0, TIM_CHANNEL_5, GPIOD, GPIO_PIN_12, CELL5_DIN_GPIO_Port, CELL5_DIN_Pin};
+    ChannelCell C6{0, TIM_CHANNEL_6, GPIOC, GPIO_PIN_15, CELL6_DIN_GPIO_Port, CELL6_DIN_Pin};
+
+    // TIM1 Din interrupt handler
+    // TIM1_CC interrupt handler
+    // TIM1_update interrupt handler
+
+    // TIM2 Din interrupt handler
+    // TIM2_CC interrupt handler
+    // TIM2_update interrupt handler
+
+
+} // namespace CellsNew
 namespace LoadCells {
     namespace {
         namespace C1 {
