@@ -1,7 +1,5 @@
 #include "LoadCells.h"
 
-#include <numbers>
-
 #include "stm32h7xx.h"
 #include "stm32h7xx_hal_rcc.h"
 #include "stm32h7xx_hal_tim.h"
@@ -24,6 +22,10 @@ namespace CellsNew {
         // d_in port and pin
         GPIO_TypeDef* dinport;
         uint16_t dinpin;
+
+        // output channel mask
+        uint16_t CCER_CCNE;
+        uint16_t CCER_CCNP;
 
         // data reading variables
         uint32_t inProgressReading = 0;
@@ -54,14 +56,79 @@ namespace CellsNew {
                 // Disable timer
                 timer->CR1 &= ~TIM_CR1_CEN;
 
-                // set PSC, ARR, and CNT. Send that shit to the shadow realm. Set UDIS
+                // Clears:
+                // - ARPE: We do not want ARR preloading, we want to be able to load directly
+                // - CMS: Put counter in up/down counting mode
+                // - DIR: Put counter in upcounting mode
+                timer->CR1 &= ~(TIM_CR1_ARPE | TIM_CR1_CMS | TIM_CR1_DIR);
+
+                // Results in a timer clock of 10MHz (t=0.1micros)
+                timer->PSC = (240000000 / 10000000) - 1;
+
+                // 20 * 0.1micros = 2micro period (t3 + t4 in datasheet)
+                timer->ARR = 20;
+
+                // Reset counter
+                timer->CNT = 0;
+
+                // Enable the moe uwu
+                timer->BDTR |= TIM_BDTR_MOE;
+
+                // Clear CCER
+                timer->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1P);
+                timer->CCER &= ~(TIM_CCER_CC2E | TIM_CCER_CC2P);
+                timer->CCER &= ~(TIM_CCER_CC3E | TIM_CCER_CC3P);
+
+                // Set OC1M to PWM mode 1
+                timer->CCMR1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2;
+                timer->CCMR1 |= TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2M_2;
+                timer->CCMR2 |= TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3M_2;
+
+                // Set CCR1-3 to half of ARR, for 50% duty cycle
+                timer->CCR1 = 10;
+                timer->CCR2 = 10;
+                timer->CCR3 = 10;
+
+                // Set CCR4 as the time to actually read the GPIO data. The reading is triggered via a interrupt
+                timer->CCR4 = 20;
+
+                // Enable capture/compare and set polarity to make output normally low
+                timer->CCER |= cell->CCER_CCNE | cell->CCER_CCNP | TIM_CCER_CC4E;
+
+                // Cause an update so that all the fun stuff gets written to the shadow registers
+                timer->EGR |= TIM_EGR_UG;
+
+                // Enable capture interrupts
+                timer->DIER |= TIM_DIER_UIE | TIM_DIER_CC4IE;
+
+                // Enable capture interrupt
+                HAL_NVIC_SetPriority(TIM1_CC_IRQn, 0, 0);
             }
 
             // connect output channel
-            [[maybe_unused]] void conChannel(ChannelCell* const cell) {}
+            [[maybe_unused]] void conChannel(ChannelCell* const cell) {
+                // Deinitializes peripheral registers and resets to default state
+                HAL_GPIO_DeInit(cell->clkport, cell->clkpin);
+                GPIO_InitTypeDef init;
+
+                // Set clk to SCK output pin. Din configured by CubeMX (electrical jesus says interrupts r hard)
+                init.Pin = (cell->clkpin);
+                init.Mode = GPIO_MODE_AF_PP;
+                init.Pull = GPIO_NOPULL;
+                init.Alternate = GPIO_AF1_TIM1;
+                HAL_GPIO_Init(cell->clkport, &init);
+
+                timer->CCER |= cell->CCER_CCNE | cell->CCER_CCNP | TIM_CCER_CC4E;
+            }
 
             // disconnect output channel
-            [[maybe_unused]] void disChannel(ChannelCell* const cell) {}
+            [[maybe_unused]] void disChannel(ChannelCell* const cell) {
+                // Disable capture/compare and set polarity to make output normally low
+                timer->CCER |= ~(cell->CCER_CCNE) | TIM_CCER_CC4E;
+
+                // Cause an update so that all the fun stuff gets written to the shadow registers
+                timer->EGR |= TIM_EGR_UG;
+            }
         } // namespace T1
         namespace T2 {}
 
@@ -78,20 +145,21 @@ namespace CellsNew {
     // global functions here
 
     // ChannelCell Initializations
-    ChannelCell C1{0, TIM_CHANNEL_1, GPIOC, GPIO_PIN_6, CELL1_DIN_GPIO_Port, CELL1_DIN_Pin};
-    ChannelCell C2{0, TIM_CHANNEL_2, GPIOE, GPIO_PIN_9, CELL2_DIN_GPIO_Port, CELL2_DIN_Pin};
-    ChannelCell C3{0, TIM_CHANNEL_3, GPIOB, GPIO_PIN_3, CELL3_DIN_GPIO_Port, CELL3_DIN_Pin};
-    ChannelCell C4{0, TIM_CHANNEL_4, GPIOB, GPIO_PIN_10, CELL4_DIN_GPIO_Port, CELL4_DIN_Pin};
-    ChannelCell C5{0, TIM_CHANNEL_5, GPIOD, GPIO_PIN_12, CELL5_DIN_GPIO_Port, CELL5_DIN_Pin};
-    ChannelCell C6{0, TIM_CHANNEL_6, GPIOC, GPIO_PIN_15, CELL6_DIN_GPIO_Port, CELL6_DIN_Pin};
+    ChannelCell C1{0, TIM_CHANNEL_1, GPIOC, GPIO_PIN_6, CELL1_DIN_GPIO_Port, CELL1_DIN_Pin, 0x1UL << (0U), 0x1UL << (1U)};
+    ChannelCell C2{0, TIM_CHANNEL_2, GPIOE, GPIO_PIN_9, CELL2_DIN_GPIO_Port, CELL2_DIN_Pin, 0x1UL << (4U), 0x1UL << (5U)};
+    ChannelCell C3{0, TIM_CHANNEL_3, GPIOB, GPIO_PIN_3, CELL3_DIN_GPIO_Port, CELL3_DIN_Pin, 0x1UL << (8U), 0x1UL << (9U)};
+    ChannelCell C4{0, TIM_CHANNEL_1, GPIOB, GPIO_PIN_10, CELL4_DIN_GPIO_Port, CELL4_DIN_Pin, 0x1UL << (0U), 0x1UL << (1U)};
+    ChannelCell C5{0, TIM_CHANNEL_2, GPIOD, GPIO_PIN_12, CELL5_DIN_GPIO_Port, CELL5_DIN_Pin, 0x1UL << (4U), 0x1UL << (5U)};
+    ChannelCell C6{0, TIM_CHANNEL_3, GPIOC, GPIO_PIN_15, CELL6_DIN_GPIO_Port, CELL6_DIN_Pin, 0x1UL << (8U), 0x1UL << (9U)};
+
+    ChannelCell tim1CellArray[3] = {C1, C2, C3}; //list of cells for timer 1 channels 1-3 (4 reserved)
+    ChannelCell tim2CellArray[3] = {C3, C4, C5}; //list of cells for timer 2 channels 1-3 (4 reserved)
 
     // TIM1 Din interrupt handler
     // TIM1_CC interrupt handler
-    // TIM1_update interrupt handler
 
     // TIM2 Din interrupt handler
     // TIM2_CC interrupt handler
-    // TIM2_update interrupt handler
 
 
 } // namespace CellsNew
@@ -191,6 +259,7 @@ namespace LoadCells {
             }
         } // namespace C1
 
+
         namespace C2 {
             TIM_TypeDef* const timer = TIM1;
             uint32_t const timch = TIM_CHANNEL_1;
@@ -250,7 +319,6 @@ namespace LoadCells {
                 HAL_NVIC_EnableIRQ(TIM1_UP_IRQn);
             }
         } // namespace C2
-
         uint32_t lastLogged = 0;
     } // namespace
 
