@@ -155,6 +155,20 @@ namespace CellsNew {
     ChannelCell tim1CellArray[3] = {C1, C2, C3}; //list of cells for timer 1 channels 1-3 (4 reserved)
     ChannelCell tim2CellArray[3] = {C3, C4, C5}; //list of cells for timer 2 channels 1-3 (4 reserved)
 
+    // GPIO interrupts
+    extern "C" void LC_DIN_IRQ(void) {
+
+    }
+
+    // TIM8
+    extern "C" void LC1_CC_IRQ(void) {
+
+    }
+
+    // TIM1
+    extern "C" void LC2_CC_IRQ(void) {
+
+    }
     // TIM1 Din interrupt handler
     // TIM1_CC interrupt handler
 
