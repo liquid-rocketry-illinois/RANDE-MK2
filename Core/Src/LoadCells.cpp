@@ -263,7 +263,8 @@ namespace CellsNew {
     ChannelCell C6{0, TIM_CHANNEL_3, GPIOC, GPIO_PIN_15, CELL6_DIN_GPIO_Port, CELL6_DIN_Pin, 0x1UL << (8U), 0x1UL << (9U)};
 
     // doubly linked list of active cells
-    std::list<ChannelCell> activeCells;
+    std::list<ChannelCell> activeTIM1Cells;
+    std::list<ChannelCell> activeTIM2Cells;
 
     // GPIO interrupts
     extern "C" void LC_DIN_IRQ(void) {
@@ -272,7 +273,7 @@ namespace CellsNew {
             __HAL_GPIO_EXTI_CLEAR_IT(C1.dinpin);
 
             // if active cells is empty initialize the timer
-            if(activeCells.empty()) {
+            if(activeTIM1Cells.empty()) {
                 AdvancedControlTimers::T1::initTimer(&C1);
             }
             else { // if the timer is already running connect the channel for C1
@@ -280,14 +281,14 @@ namespace CellsNew {
             }
 
             // add C1 to active cells
-            activeCells.push_back(C1);
+            activeTIM1Cells.push_back(C1);
         }
         else if(__HAL_GPIO_EXTI_GET_IT(C2.dinpin)) {
             // Acknowledge the interrupt
             __HAL_GPIO_EXTI_CLEAR_IT(C2.dinpin);
 
             // if active cells is empty initialize the timer
-            if(activeCells.empty()) {
+            if(activeTIM1Cells.empty()) {
                 AdvancedControlTimers::T1::initTimer(&C2);
             }
             else { // if the timer is already running connect the channel for C2
@@ -295,14 +296,14 @@ namespace CellsNew {
             }
 
             // add C2 to active cells
-            activeCells.push_back(C2);
+            activeTIM1Cells.push_back(C2);
         }
         else if(__HAL_GPIO_EXTI_GET_IT(C3.dinpin)) {
             // Acknowledge the interrupt
             __HAL_GPIO_EXTI_CLEAR_IT(C3.dinpin);
 
             // if active cells is empty initialize the timer
-            if(activeCells.empty()) {
+            if(activeTIM1Cells.empty()) {
                 AdvancedControlTimers::T1::initTimer(&C3);
             }
             else { // if the timer is already running connect the channel for C3
@@ -310,14 +311,14 @@ namespace CellsNew {
             }
 
             // add C3 to active cells
-            activeCells.push_back(C3);
+            activeTIM1Cells.push_back(C3);
         }
         else if(__HAL_GPIO_EXTI_GET_IT(C4.dinpin)) {
             // Acknowledge the interrupt
             __HAL_GPIO_EXTI_CLEAR_IT(C4.dinpin);
 
             // if active cells is empty initialize the timer
-            if(activeCells.empty()) {
+            if(activeTIM2Cells.empty()) {
                 AdvancedControlTimers::T2::initTimer(&C4);
             }
             else { // if the timer is already running connect the channel for C4
@@ -325,14 +326,14 @@ namespace CellsNew {
             }
 
             // add C4 to active cells
-            activeCells.push_back(C4);
+            activeTIM2Cells.push_back(C4);
         }
         else if(__HAL_GPIO_EXTI_GET_IT(C5.dinpin)) {
             // Acknowledge the interrupt
             __HAL_GPIO_EXTI_CLEAR_IT(C5.dinpin);
 
             // if active cells is empty initialize the timer
-            if(activeCells.empty()) {
+            if(activeTIM2Cells.empty()) {
                 AdvancedControlTimers::T2::initTimer(&C5);
             }
             else { // if the timer is already running connect the channel for C5
@@ -340,14 +341,14 @@ namespace CellsNew {
             }
 
             // add C5 to active cells
-            activeCells.push_back(C5);
+            activeTIM2Cells.push_back(C5);
         }
         else if(__HAL_GPIO_EXTI_GET_IT(C6.dinpin)) {
             // Acknowledge the interrupt
             __HAL_GPIO_EXTI_CLEAR_IT(C6.dinpin);
 
             // if active cells is empty initialize the timer
-            if(activeCells.empty()) {
+            if(activeTIM2Cells.empty()) {
                 AdvancedControlTimers::T2::initTimer(&C6);
             }
             else { // if the timer is already running connect the channel for C6
@@ -355,7 +356,7 @@ namespace CellsNew {
             }
 
             // add C6 to active cells
-            activeCells.push_back(C6);
+            activeTIM2Cells.push_back(C6);
         }
     }
 
