@@ -362,12 +362,38 @@ namespace CellsNew {
 
     // TIM8
     extern "C" void LC1_CC_IRQ(void) {
+        for (auto& cell : activeTIM2Cells) {
+
+            // Acknowledge the interrupt
+            cell::timer->SR &= ~TIM_SR_CC2IF;
+
+            if(cell::mask > 0) {
+                 cell::inProgressReading |= cell::mask;
+
+                // Shift the mask each iteration
+                cell::mask >>= 1;
+                // increment pulse
+            cell::pulseCount++;
+
+
+        }
 
     }
 
     // TIM1
     extern "C" void LC2_CC_IRQ(void) {
+            for (auto& cell : activeTIM1Cells) {
 
+                // Acknowledge the interrupt
+                cell::timer->SR &= ~TIM_SR_CC2IF;
+
+                if(cell::mask > 0) {
+                    cell::inProgressReading |= cell::mask;
+
+                    // Shift the mask each iteration
+                    cell::mask >>= 1;
+                    // increment pulse
+                    cell::pulseCount++;
     }
     // TIM1 Din interrupt handler
     // TIM1_CC interrupt handler
