@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include "main.h"
 #include <list>
+
 namespace CellsNew {
     struct ChannelCell {
         // pulse count since initialization and timer output channel
@@ -30,10 +31,27 @@ namespace CellsNew {
 
         // data reading variables
         uint32_t inProgressReading = 0;
-        uint32_t mask = 0;
+        uint32_t mask = 0x00800000;
         int32_t rawLatestReading = 0;
+
+        //RCP variables
+        float offset = 0;
+        float scale = 0.0001532810009f;
+        float latestReading = 17.12345f;
     };
     namespace AdvancedControlTimers {
+
+        // ChannelCell Initializations
+        ChannelCell C1{0, TIM_CHANNEL_1, GPIOC, GPIO_PIN_6, CELL1_DIN_GPIO_Port, CELL1_DIN_Pin, 0x1UL << (0U), 0x1UL << (1U)};
+        ChannelCell C2{0, TIM_CHANNEL_2, GPIOE, GPIO_PIN_9, CELL2_DIN_GPIO_Port, CELL2_DIN_Pin, 0x1UL << (4U), 0x1UL << (5U)};
+        ChannelCell C3{0, TIM_CHANNEL_3, GPIOB, GPIO_PIN_3, CELL3_DIN_GPIO_Port, CELL3_DIN_Pin, 0x1UL << (8U), 0x1UL << (9U)};
+        ChannelCell C4{0, TIM_CHANNEL_1, GPIOB, GPIO_PIN_10, CELL4_DIN_GPIO_Port, CELL4_DIN_Pin, 0x1UL << (0U), 0x1UL << (1U)};
+        ChannelCell C5{0, TIM_CHANNEL_2, GPIOD, GPIO_PIN_12, CELL5_DIN_GPIO_Port, CELL5_DIN_Pin, 0x1UL << (4U), 0x1UL << (5U)};
+        ChannelCell C6{0, TIM_CHANNEL_3, GPIOC, GPIO_PIN_15, CELL6_DIN_GPIO_Port, CELL6_DIN_Pin, 0x1UL << (8U), 0x1UL << (9U)};
+
+        // doubly linked list of active cells
+        std::list<ChannelCell> static activeTIM1Cells;
+        std::list<ChannelCell> static activeTIM2Cells;
 
         namespace T1 {
             TIM_TypeDef* const timer = TIM1;
@@ -242,35 +260,58 @@ namespace CellsNew {
             }
         } // namespace T2
 
-        // scale data
-        void yield() {}
+        uint32_t lastLogged = 0;
 
-        // read data
-        void readCell() {}
+        float readCell(uint8_t id) {
+            if(id == 0) return C1.latestReading;
+            if(id == 1) return C2.latestReading;
+            if(id == 2) return C3.latestReading;
+            if(id == 3) return C4.latestReading;
+            if(id == 4) return C5.latestReading;
+            if(id == 5) return C6.latestReading;
+            return 0;
+        }
 
-        // tare cells for RCI
-        void tareCell() {}
+        void yield() {
+            C1.latestReading = C1.scale * (static_cast<float>(C1.rawLatestReading)) + C1.offset;
+            C2.latestReading = C2.scale * (static_cast<float>(C2.rawLatestReading)) + C2.offset;
+            C3.latestReading = C3.scale * (static_cast<float>(C3.rawLatestReading)) + C3.offset;
+            C4.latestReading = C4.scale * (static_cast<float>(C4.rawLatestReading)) + C4.offset;
+            C5.latestReading = C5.scale * (static_cast<float>(C5.rawLatestReading)) + C5.offset;
+            C6.latestReading = C6.scale * (static_cast<float>(C6.rawLatestReading)) + C6.offset;
+
+            if(RCP::getDataStreaming() && HAL_GetTick() - lastLogged > 10) {
+                lastLogged = HAL_GetTick();
+                RCP::sendOneFloat(RCP_DEVCLASS_LOAD_CELL, 0, readCell(0));
+                RCP::sendOneFloat(RCP_DEVCLASS_LOAD_CELL, 1, readCell(1));
+                RCP::sendOneFloat(RCP_DEVCLASS_LOAD_CELL, 1, readCell(2));
+                RCP::sendOneFloat(RCP_DEVCLASS_LOAD_CELL, 1, readCell(3));
+                RCP::sendOneFloat(RCP_DEVCLASS_LOAD_CELL, 1, readCell(4));
+                RCP::sendOneFloat(RCP_DEVCLASS_LOAD_CELL, 1, readCell(5));
+            }
+        }
+
+        void tareCell(uint8_t id, float offset) {
+            if(id == 0) C1.offset += offset;
+            else if(id == 1) C2.offset += offset;
+            else if(id == 2) C3.offset += offset;
+            else if(id == 3) C4.offset += offset;
+            else if(id == 4) C5.offset += offset;
+            else if(id == 5) C6.offset += offset;
+        }
     } // namespace AdvancedControlTimers
 
     // global functions here
 
-    // ChannelCell Initializations
-    ChannelCell C1{0, TIM_CHANNEL_1, GPIOC, GPIO_PIN_6, CELL1_DIN_GPIO_Port, CELL1_DIN_Pin, 0x1UL << (0U), 0x1UL << (1U)};
-    ChannelCell C2{0, TIM_CHANNEL_2, GPIOE, GPIO_PIN_9, CELL2_DIN_GPIO_Port, CELL2_DIN_Pin, 0x1UL << (4U), 0x1UL << (5U)};
-    ChannelCell C3{0, TIM_CHANNEL_3, GPIOB, GPIO_PIN_3, CELL3_DIN_GPIO_Port, CELL3_DIN_Pin, 0x1UL << (8U), 0x1UL << (9U)};
-    ChannelCell C4{0, TIM_CHANNEL_1, GPIOB, GPIO_PIN_10, CELL4_DIN_GPIO_Port, CELL4_DIN_Pin, 0x1UL << (0U), 0x1UL << (1U)};
-    ChannelCell C5{0, TIM_CHANNEL_2, GPIOD, GPIO_PIN_12, CELL5_DIN_GPIO_Port, CELL5_DIN_Pin, 0x1UL << (4U), 0x1UL << (5U)};
-    ChannelCell C6{0, TIM_CHANNEL_3, GPIOC, GPIO_PIN_15, CELL6_DIN_GPIO_Port, CELL6_DIN_Pin, 0x1UL << (8U), 0x1UL << (9U)};
-
-    // doubly linked list of active cells
-    std::list<ChannelCell> activeTIM1Cells;
-    std::list<ChannelCell> activeTIM2Cells;
-
     // GPIO interrupts
     extern "C" void LC_DIN_IRQ(void) {
+        using namespace AdvancedControlTimers;
         if(__HAL_GPIO_EXTI_GET_IT(C1.dinpin)) {
             // Acknowledge the interrupt
             __HAL_GPIO_EXTI_CLEAR_IT(C1.dinpin);
+
+            // Disable DIN for GPIO
+            LL_EXTI_DisableIT_0_31(C1.dinpin);
 
             // if active cells is empty initialize the timer
             if(activeTIM1Cells.empty()) {
@@ -287,6 +328,9 @@ namespace CellsNew {
             // Acknowledge the interrupt
             __HAL_GPIO_EXTI_CLEAR_IT(C2.dinpin);
 
+            // Disable DIN for GPIO
+            LL_EXTI_DisableIT_0_31(C2.dinpin);
+
             // if active cells is empty initialize the timer
             if(activeTIM1Cells.empty()) {
                 AdvancedControlTimers::T1::initTimer(&C2);
@@ -301,6 +345,9 @@ namespace CellsNew {
         else if(__HAL_GPIO_EXTI_GET_IT(C3.dinpin)) {
             // Acknowledge the interrupt
             __HAL_GPIO_EXTI_CLEAR_IT(C3.dinpin);
+
+            // Disable DIN for GPIO
+            LL_EXTI_DisableIT_0_31(C3.dinpin);
 
             // if active cells is empty initialize the timer
             if(activeTIM1Cells.empty()) {
@@ -317,6 +364,9 @@ namespace CellsNew {
             // Acknowledge the interrupt
             __HAL_GPIO_EXTI_CLEAR_IT(C4.dinpin);
 
+            // Disable DIN for GPIO
+            LL_EXTI_DisableIT_0_31(C4.dinpin);
+
             // if active cells is empty initialize the timer
             if(activeTIM2Cells.empty()) {
                 AdvancedControlTimers::T2::initTimer(&C4);
@@ -332,6 +382,9 @@ namespace CellsNew {
             // Acknowledge the interrupt
             __HAL_GPIO_EXTI_CLEAR_IT(C5.dinpin);
 
+            // Disable DIN for GPIO
+            LL_EXTI_DisableIT_0_31(C5.dinpin);
+
             // if active cells is empty initialize the timer
             if(activeTIM2Cells.empty()) {
                 AdvancedControlTimers::T2::initTimer(&C5);
@@ -345,7 +398,10 @@ namespace CellsNew {
         }
         else if(__HAL_GPIO_EXTI_GET_IT(C6.dinpin)) {
             // Acknowledge the interrupt
-            __HAL_GPIO_EXTI_CLEAR_IT(C6.dinpin);
+            __HAL_GPIO_EXTI_CLEAR_IT(C6.dinpin);\
+
+            // Disable DIN for GPIO
+            LL_EXTI_DisableIT_0_31(C6.dinpin);
 
             // if active cells is empty initialize the timer
             if(activeTIM2Cells.empty()) {
@@ -362,45 +418,73 @@ namespace CellsNew {
 
     // TIM8
     extern "C" void LC1_CC_IRQ(void) {
+        using namespace AdvancedControlTimers;
         for (auto& cell : activeTIM2Cells) {
 
             // Acknowledge the interrupt
-            cell::timer->SR &= ~TIM_SR_CC2IF;
+            T2::timer->SR &= ~TIM_SR_CC2IF;
 
-            if(cell::mask > 0) {
-                 cell::inProgressReading |= cell::mask;
+
+            // If the mask is still has bits left...
+            if(cell.mask > 0) {
+                // If the data line is high, this bit is a one
+                if(cell.dinport->IDR & cell.dinpin) cell.inProgressReading |= cell.mask;
 
                 // Shift the mask each iteration
-                cell::mask >>= 1;
-                // increment pulse
-            cell::pulseCount++;
+                cell.mask >>= 1;
+            }
 
+            if(cell.pulseCount == 25) {
+                //disconnect cell channel from timer
+                T2::disChannel(&cell);
 
+                //do the type conversion and set latest reading to
+                if(cell.inProgressReading & 0x00800000) cell.inProgressReading += 0xFF000000;
+                cell.rawLatestReading = static_cast<int32_t>(cell.inProgressReading);
+
+                // rest pulseCount to zero for next cycle
+                cell.pulseCount = 0;
+
+                // reenable dinpin
+                LL_EXTI_EnableIT_0_31(cell.dinpin);
+            }
         }
-
     }
 
     // TIM1
     extern "C" void LC2_CC_IRQ(void) {
-            for (auto& cell : activeTIM1Cells) {
+        using namespace AdvancedControlTimers;
+        for (auto& cell : activeTIM1Cells) {
 
-                // Acknowledge the interrupt
-                cell::timer->SR &= ~TIM_SR_CC2IF;
+            // Acknowledge the interrupt
+            T1::timer->SR &= ~TIM_SR_CC2IF;
 
-                if(cell::mask > 0) {
-                    cell::inProgressReading |= cell::mask;
 
-                    // Shift the mask each iteration
-                    cell::mask >>= 1;
-                    // increment pulse
-                    cell::pulseCount++;
+            // If the mask is still has bits left...
+            if(cell.mask > 0) {
+                // If the data line is high, this bit is a one
+                if(cell.dinport->IDR & cell.dinpin) cell.inProgressReading |= cell.mask;
+
+                // Shift the mask each iteration
+                cell.mask >>= 1;
+            }
+
+            if(cell.pulseCount == 25) {
+                //disconnect cell channel from timer
+                T2::disChannel(&cell);
+
+                //do the type conversion and set latest reading to
+                if(cell.inProgressReading & 0x00800000) cell.inProgressReading += 0xFF000000;
+                cell.rawLatestReading = static_cast<int32_t>(cell.inProgressReading);
+
+                // rest pulseCount to zero for next cycle
+                cell.pulseCount = 0;
+
+                // reenable dinpin
+                LL_EXTI_EnableIT_0_31(cell.dinpin);
+            }
+        }
     }
-    // TIM1 Din interrupt handler
-    // TIM1_CC interrupt handler
-
-    // TIM2 Din interrupt handler
-    // TIM2_CC interrupt handler
-
 
 } // namespace CellsNew
 
@@ -437,7 +521,7 @@ namespace CellsNew {
 
 
 
-
+/*
 namespace LoadCells {
     namespace {
         namespace C1 {
@@ -626,12 +710,14 @@ namespace LoadCells {
 
 
 } // namespace LoadCells
+*/
 
 /*
 This interrupt is placed on DIN, and detects the falling edge indicating a conversion has completed. When this
     occurs, disable the interrupt so it is not constantly triggered when we are reading data. Reset the inputting
     variables, then start the one-shot 25-pulse PWM generation through the timer.
  */
+/*
 extern "C" void LC_DIN_IRQ(void) {
     using namespace LoadCells;
     // If the interrupt was on the data in pin
@@ -712,3 +798,4 @@ extern "C" void LC2_CC_IRQ(void) {
         C2::mask >>= 1;
     }
 }
+*/
