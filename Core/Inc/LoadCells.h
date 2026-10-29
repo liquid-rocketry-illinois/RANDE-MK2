@@ -3,8 +3,7 @@
 
 #include <cstdint>
 
-namespace LoadCells {
-    void init();
+namespace  CellsNew::AdvancedControlTimers {
     void yield();
     float readCell(uint8_t id);
     void tareCell(uint8_t id, float offset);
