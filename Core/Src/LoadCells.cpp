@@ -37,7 +37,7 @@ namespace CellsNew {
         //RCP variables
         float offset = 0;
         float scale = 0.0001532810009f;
-        float latestReading = 17.12345f;
+        float latestReading = 12.34567f;
     };
     namespace AdvancedControlTimers {
 
@@ -121,8 +121,8 @@ namespace CellsNew {
                 timer->DIER |= TIM_DIER_UIE | TIM_DIER_CC4IE;
 
                 // Enable capture interrupt
-                HAL_NVIC_SetPriority(TIM8_CC_IRQn, 0, 0);
-                HAL_NVIC_EnableIRQ(TIM8_CC_IRQn);
+                HAL_NVIC_SetPriority(TIM1_CC_IRQn, 0, 0);
+                HAL_NVIC_EnableIRQ(TIM1_CC_IRQn);
 
                 timer->CR1 |= TIM_CR1_CEN;
             }
@@ -160,7 +160,7 @@ namespace CellsNew {
             TIM_TypeDef* const timer = TIM2;
 
             // initializes timer
-            [[maybe_unused]] void initTimer(ChannelCell* const cell) {
+            [[maybe_unused]] void initTimer(ChannelCell* cell) {
                 // enable clocks
                 __HAL_RCC_TIM2_CLK_ENABLE();
 
@@ -231,7 +231,7 @@ namespace CellsNew {
             }
 
             // connect output channel
-            [[maybe_unused]] void conChannel(ChannelCell* const cell) {
+            [[maybe_unused]] void conChannel(ChannelCell* cell) {
                 // Deinitializes peripheral registers and resets to default state
                 HAL_GPIO_DeInit(cell->clkport, cell->clkpin);
                 GPIO_InitTypeDef init;
@@ -251,7 +251,7 @@ namespace CellsNew {
             }
 
             // disconnect output channel
-            [[maybe_unused]] void disChannel(ChannelCell* const cell) {
+            [[maybe_unused]] void disChannel(ChannelCell* cell) {
                 // Disable capture/compare
                 timer->CCER |= ~(cell->CCER_CCNE) | TIM_CCER_CC4E;
 
@@ -419,34 +419,46 @@ namespace CellsNew {
     // TIM8
     extern "C" void LC1_CC_IRQ(void) {
         using namespace AdvancedControlTimers;
-        for (auto& cell : activeTIM2Cells) {
 
-            // Acknowledge the interrupt
-            T2::timer->SR &= ~TIM_SR_CC2IF;
+        // Acknowledge the interrupt
+        T2::timer->SR &= ~TIM_SR_CC4IF;
 
+        // doubly linked list iterator; cell is a ChannelCell iterator
+        for (auto cell = activeTIM2Cells.begin(); cell != activeTIM2Cells.end(); ) {
 
             // If the mask is still has bits left...
-            if(cell.mask > 0) {
+            if(cell->mask > 0) {
                 // If the data line is high, this bit is a one
-                if(cell.dinport->IDR & cell.dinpin) cell.inProgressReading |= cell.mask;
+                if(cell->dinport->IDR & cell->dinpin) cell->inProgressReading |= cell->mask;
 
                 // Shift the mask each iteration
-                cell.mask >>= 1;
+                cell->mask >>= 1;
+
+                // increment pulse count
+                cell->pulseCount++;
             }
 
-            if(cell.pulseCount == 25) {
+            if(cell->pulseCount == 25) {
                 //disconnect cell channel from timer
-                T2::disChannel(&cell);
+                //cell is a std::list<ChannelCell>::iterator which when derefrenced yields lvalue ChanneCell&; we take the address of to pass by pointer
+                T2::disChannel(&*cell);
+
+                //remove from active devices
+                cell = activeTIM2Cells.erase(cell);
+
 
                 //do the type conversion and set latest reading to
-                if(cell.inProgressReading & 0x00800000) cell.inProgressReading += 0xFF000000;
-                cell.rawLatestReading = static_cast<int32_t>(cell.inProgressReading);
+                if(cell->inProgressReading & 0x00800000) cell->inProgressReading += 0xFF000000;
+                cell->rawLatestReading = static_cast<int32_t>(cell->inProgressReading);
 
                 // rest pulseCount to zero for next cycle
-                cell.pulseCount = 0;
+                cell->pulseCount = 0;
 
                 // reenable dinpin
-                LL_EXTI_EnableIT_0_31(cell.dinpin);
+                LL_EXTI_EnableIT_0_31(cell->dinpin);
+            }
+            else {
+                ++cell;
             }
         }
     }
@@ -454,34 +466,46 @@ namespace CellsNew {
     // TIM1
     extern "C" void LC2_CC_IRQ(void) {
         using namespace AdvancedControlTimers;
-        for (auto& cell : activeTIM1Cells) {
 
-            // Acknowledge the interrupt
-            T1::timer->SR &= ~TIM_SR_CC2IF;
+        // Acknowledge the interrupt
+        T1::timer->SR &= ~TIM_SR_CC4IF;
 
+        // doubly linked list iterator; cell is a ChannelCell iterator
+        for (auto cell = activeTIM1Cells.begin(); cell != activeTIM1Cells.end(); ) {
 
             // If the mask is still has bits left...
-            if(cell.mask > 0) {
+            if(cell->mask > 0) {
                 // If the data line is high, this bit is a one
-                if(cell.dinport->IDR & cell.dinpin) cell.inProgressReading |= cell.mask;
+                if(cell->dinport->IDR & cell->dinpin) cell->inProgressReading |= cell->mask;
 
                 // Shift the mask each iteration
-                cell.mask >>= 1;
+                cell->mask >>= 1;
+
+                // increment pulse count
+                cell->pulseCount++;
             }
 
-            if(cell.pulseCount == 25) {
+            if(cell->pulseCount == 25) {
                 //disconnect cell channel from timer
-                T2::disChannel(&cell);
+                //cell is a std::list<ChannelCell>::iterator which when derefrenced yields lvalue ChanneCell&; we take the address of to pass by pointer
+                T2::disChannel(&*cell);
+
+                //remove from active devices
+                cell = activeTIM1Cells.erase(cell);
+
 
                 //do the type conversion and set latest reading to
-                if(cell.inProgressReading & 0x00800000) cell.inProgressReading += 0xFF000000;
-                cell.rawLatestReading = static_cast<int32_t>(cell.inProgressReading);
+                if(cell->inProgressReading & 0x00800000) cell->inProgressReading += 0xFF000000;
+                cell->rawLatestReading = static_cast<int32_t>(cell->inProgressReading);
 
                 // rest pulseCount to zero for next cycle
-                cell.pulseCount = 0;
+                cell->pulseCount = 0;
 
                 // reenable dinpin
-                LL_EXTI_EnableIT_0_31(cell.dinpin);
+                LL_EXTI_EnableIT_0_31(cell->dinpin);
+            }
+            else {
+                ++cell;
             }
         }
     }
