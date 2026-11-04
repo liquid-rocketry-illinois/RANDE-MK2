@@ -12,33 +12,6 @@
 #include <list>
 
 namespace CellsNew {
-    struct ChannelCell {
-        // pulse count since initialization and timer output channel
-        int pulseCount = 0;
-        uint32_t timch;
-
-        // clock port and pin
-        GPIO_TypeDef* clkport;
-        uint16_t clkpin;
-
-        // d_in port and pin
-        GPIO_TypeDef* dinport;
-        uint16_t dinpin;
-
-        // output channel mask
-        uint16_t CCER_CCNE;
-        uint16_t CCER_CCNP;
-
-        // data reading variables
-        uint32_t inProgressReading = 0;
-        uint32_t mask = 0x00800000;
-        int32_t rawLatestReading = 0;
-
-        //RCP variables
-        float offset = 0;
-        float scale = 0.0001532810009f;
-        float latestReading = 12.34567f;
-    };
     namespace AdvancedControlTimers {
 
         // ChannelCell Initializations
@@ -98,10 +71,11 @@ namespace CellsNew {
                 timer->CCER &= ~(TIM_CCER_CC2E | TIM_CCER_CC2P);
                 timer->CCER &= ~(TIM_CCER_CC3E | TIM_CCER_CC3P);
 
-                // Set OC1M to PWM mode 1
-                timer->CCMR1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2;
-                timer->CCMR2 |= TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2M_2;
-                timer->CCMR3 |= TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3M_2;
+                // Set OC1M to PWM mode
+                timer->CCMR1 &= ~(TIM_CCMR1_CC1S | (6 << TIM_CCMR1_OC1M_Pos) | TIM_CCMR1_CC2S | (6 << TIM_CCMR1_OC2M_Pos));
+                timer->CCMR2 &= ~(TIM_CCMR2_CC3S | (6 << TIM_CCMR2_OC3M_Pos));
+                timer->CCMR1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2M_2;
+                timer->CCMR2 |= TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3M_2;
 
                 // Set CCR1-3 to half of ARR, for 50% duty cycle
                 timer->CCR1 = 10;
@@ -141,7 +115,7 @@ namespace CellsNew {
                 HAL_GPIO_Init(cell->clkport, &init);
 
                 // Enable capture/compare and set polarity to make output normally low
-                timer->CCER |= cell->CCER_CCNE | cell->CCER_CCNP | TIM_CCER_CC4E;
+                timer->CCER |= cell->CCER_CCNE | cell->CCER_CCNP;
 
                 // Send it to shadow realm
                 timer->EGR |= TIM_EGR_UG;
@@ -150,7 +124,7 @@ namespace CellsNew {
             // disconnect output channel
             [[maybe_unused]] void disChannel(ChannelCell* const cell) {
                 // Disable capture/compare
-                timer->CCER |= ~(cell->CCER_CCNE) | TIM_CCER_CC4E;
+                timer->CCER &= ~(cell->CCER_CCNE);
 
                 // Send it to shadow realm
                 timer->EGR |= TIM_EGR_UG;
@@ -201,10 +175,11 @@ namespace CellsNew {
                 timer->CCER &= ~(TIM_CCER_CC2E | TIM_CCER_CC2P);
                 timer->CCER &= ~(TIM_CCER_CC3E | TIM_CCER_CC3P);
 
-                // Set OC1M to PWM mode 1
-                timer->CCMR1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2;
-                timer->CCMR2 |= TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2M_2;
-                timer->CCMR3 |= TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3M_2;
+                // Set OC1M to PWM mode
+                timer->CCMR1 &= ~(TIM_CCMR1_CC1S | (6 << TIM_CCMR1_OC1M_Pos) | TIM_CCMR1_CC2S | (6 << TIM_CCMR1_OC2M_Pos));
+                timer->CCMR2 &= ~(TIM_CCMR2_CC3S | (6 << TIM_CCMR2_OC3M_Pos));
+                timer->CCMR1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2M_2;
+                timer->CCMR2 |= TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3M_2;
 
                 // Set CCR1-3 to half of ARR, for 50% duty cycle
                 timer->CCR1 = 10;
@@ -240,11 +215,11 @@ namespace CellsNew {
                 init.Pin = (cell->clkpin);
                 init.Mode = GPIO_MODE_AF_PP;
                 init.Pull = GPIO_NOPULL;
-                init.Alternate = GPIO_AF1_TIM1;
+                init.Alternate = GPIO_AF1_TIM2;
                 HAL_GPIO_Init(cell->clkport, &init);
 
                 // Enable capture/compare and set polarity to make output normally low
-                timer->CCER |= cell->CCER_CCNE | cell->CCER_CCNP | TIM_CCER_CC4E;
+                timer->CCER |= cell->CCER_CCNE | cell->CCER_CCNP;
 
                 // Send it to shadow realm
                 timer->EGR |= TIM_EGR_UG;
@@ -253,7 +228,7 @@ namespace CellsNew {
             // disconnect output channel
             [[maybe_unused]] void disChannel(ChannelCell* cell) {
                 // Disable capture/compare
-                timer->CCER |= ~(cell->CCER_CCNE) | TIM_CCER_CC4E;
+                timer->CCER &= ~(cell->CCER_CCNE);
 
                 // Send it to shadow realm
                 timer->EGR |= TIM_EGR_UG;

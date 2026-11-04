@@ -27,26 +27,32 @@ namespace Test {
 // This function is declared extern C so that it can be called from the C environment. Otherwise, C++ name
 // mangling would mean the C call to the function would not link
 extern "C" void setup() {
-    // Init tinyusb
-    tud_rhport_init(BOARD_TUD_RHPORT, &TUSB_INIT_DATA);
+    // // Init tinyusb
+    // tud_rhport_init(BOARD_TUD_RHPORT, &TUSB_INIT_DATA);
+    //
+    // // Wait for the DCR line to go high (set by RCI)
+    // while(!(tud_cdc_get_line_state() & 0x01)) {
+    //     tud_task_ext(5, false);
+    // }
+    //
+    // // Turn on this led after connection success, as a visual indicator
+    // HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+    //
+    // // Init the various different parts of the code
+    // RCP::init();
+    // RCP::setReady(true);
+    // RCP::ESTOP_PROC = Test::ESTOP;
+    // SimpleActuators::init();
+    // Transducers::init();
+    // LoadCells::init();
+    // BoolSensors::init();
+    // TC::init();
 
-    // Wait for the DCR line to go high (set by RCI)
-    while(!(tud_cdc_get_line_state() & 0x01)) {
-        tud_task_ext(5, false);
-    }
+    CellsNew::AdvancedControlTimers::ChannelCell C1{0, TIM_CHANNEL_1, GPIOC, GPIO_PIN_6, CELL1_DIN_GPIO_Port, CELL1_DIN_Pin, 0x1UL << (0U), 0x1UL << (1U)};
+    CellsNew::AdvancedControlTimers::ChannelCell C2{0, TIM_CHANNEL_2, GPIOE, GPIO_PIN_9, CELL2_DIN_GPIO_Port, CELL2_DIN_Pin, 0x1UL << (4U), 0x1UL << (5U)};
 
-    // Turn on this led after connection success, as a visual indicator
-    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
-
-    // Init the various different parts of the code
-    RCP::init();
-    RCP::setReady(true);
-    RCP::ESTOP_PROC = Test::ESTOP;
-    SimpleActuators::init();
-    Transducers::init();
-    LoadCells::init();
-    BoolSensors::init();
-    TC::init();
+    CellsNew::AdvancedControlTimers::T1::initTimer(&C2);
+    CellsNew::AdvancedControlTimers::T2::conChannel(&C1);
 }
 
 // Buffer to store received data for RCP
@@ -60,28 +66,30 @@ bool prevVenting = false;
 
 // This is also extern C for the same reasons as above
 extern "C" void loop() {
-    // Make sure to call the tinyusb processing function so it can do its thing. This is why
-    // nothing in the code can block
-    tud_task_ext(1, false);
+    // // Make sure to call the tinyusb processing function so it can do its thing. This is why
+    // // nothing in the code can block
+    // tud_task_ext(1, false);
+    //
+    // // Read bytes from tinyusb input
+    // uint32_t read = tud_cdc_read(tempIn, sizeof(tempIn) / sizeof(uint8_t));
+    //
+    // // Push the bytes into the buffer
+    // for(uint32_t i = 0; i < read; i++) {
+    //     inbuffer.push(tempIn[i]);
+    // }
+    //
+    // // Make sure to flush output so tinyusb actually sends the data over the wire
+    // tud_cdc_write_flush();
+    //
+    // // Call various yielding functions
+    // RCP::yield();
+    // RCP::runTest();
+    // Transducers::yield();
+    // LoadCells::yield();
+    // BoolSensors::yield();
+    // TC::yield();
 
-    // Read bytes from tinyusb input
-    uint32_t read = tud_cdc_read(tempIn, sizeof(tempIn) / sizeof(uint8_t));
 
-    // Push the bytes into the buffer
-    for(uint32_t i = 0; i < read; i++) {
-        inbuffer.push(tempIn[i]);
-    }
-
-    // Make sure to flush output so tinyusb actually sends the data over the wire
-    tud_cdc_write_flush();
-
-    // Call various yielding functions
-    RCP::yield();
-    RCP::runTest();
-    Transducers::yield();
-    LoadCells::yield();
-    BoolSensors::yield();
-    TC::yield();
 }
 
 // These functions are the 4 required for minimal RCP implementation
@@ -108,7 +116,7 @@ RCP::Floats4 RCP::readSensor(RCP_DeviceClass devclass, uint8_t id) {
     // Switch on the device class, then load the floats structure with the appropriate data
     switch(devclass) {
     case RCP_DEVCLASS_LOAD_CELL:
-        floats.vals[0] = LoadCells::readCell(id);
+        floats.vals[0] = CellsNew::AdvancedControlTimers::readCell(id);
         break;
 
     case RCP_DEVCLASS_PRESSURE_TRANSDUCER:
@@ -130,7 +138,7 @@ RCP::Floats4 RCP::readSensor(RCP_DeviceClass devclass, uint8_t id) {
 void RCP::writeSensorTare(RCP_DeviceClass devclass, uint8_t id, [[maybe_unused]] uint8_t dataChannel, float tareVal) {
     switch(devclass) {
     case RCP_DEVCLASS_LOAD_CELL:
-        LoadCells::tareCell(id, tareVal);
+        CellsNew::AdvancedControlTimers::tareCell(id, tareVal);
         break;
 
     case RCP_DEVCLASS_PRESSURE_TRANSDUCER:
