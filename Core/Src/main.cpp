@@ -50,9 +50,14 @@ extern "C" void setup() {
 
     CellsNew::AdvancedControlTimers::ChannelCell C1{0, TIM_CHANNEL_1, GPIOC, GPIO_PIN_6, CELL1_DIN_GPIO_Port, CELL1_DIN_Pin, 0x1UL << (0U), 0x1UL << (1U)};
     CellsNew::AdvancedControlTimers::ChannelCell C2{0, TIM_CHANNEL_2, GPIOE, GPIO_PIN_9, CELL2_DIN_GPIO_Port, CELL2_DIN_Pin, 0x1UL << (4U), 0x1UL << (5U)};
+    //CellsNew::AdvancedControlTimers::ChannelCell C3{0, TIM_CHANNEL_3, GPIOB, GPIO_PIN_3, CELL3_DIN_GPIO_Port, CELL3_DIN_Pin, 0x1UL << (8U), 0x1UL << (9U)};
+    //CellsNew::AdvancedControlTimers::ChannelCell C4{0, TIM_CHANNEL_1, GPIOB, GPIO_PIN_10, CELL4_DIN_GPIO_Port, CELL4_DIN_Pin, 0x1UL << (0U), 0x1UL << (1U)};
+    //CellsNew::AdvancedControlTimers::ChannelCell C5{0, TIM_CHANNEL_2, GPIOD, GPIO_PIN_12, CELL5_DIN_GPIO_Port, CELL5_DIN_Pin, 0x1UL << (4U), 0x1UL << (5U)};
+    //CellsNew::AdvancedControlTimers::ChannelCell C6{0, TIM_CHANNEL_3, GPIOC, GPIO_PIN_15, CELL6_DIN_GPIO_Port, CELL6_DIN_Pin, 0x1UL << (8U), 0x1UL << (9U)};
 
-    CellsNew::AdvancedControlTimers::T1::initTimer(&C2);
-    CellsNew::AdvancedControlTimers::T2::conChannel(&C1);
+    CellsNew::AdvancedControlTimers::T1::initTimer(&C1);
+    CellsNew::AdvancedControlTimers::T2::initTimer(&C2);
+
 }
 
 // Buffer to store received data for RCP
