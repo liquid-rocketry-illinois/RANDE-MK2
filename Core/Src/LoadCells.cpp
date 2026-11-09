@@ -146,7 +146,7 @@ namespace CellsNew {
                 init.Pin = (cell->clkpin);
                 init.Mode = GPIO_MODE_AF_PP;
                 init.Pull = GPIO_NOPULL;
-                init.Alternate = GPIO_AF1_TIM1;
+                init.Alternate = GPIO_AF1_TIM2;
                 HAL_GPIO_Init(cell->clkport, &init);
 
                 // Disable timer
