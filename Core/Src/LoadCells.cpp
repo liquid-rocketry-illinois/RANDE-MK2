@@ -27,10 +27,114 @@ namespace CellsNew {
         std::list<ChannelCell> static activeTIM2Cells;
 
         namespace T1 {
-            TIM_TypeDef* const timer = TIM1;
+            TIM_TypeDef* const timer = TIM8;
 
             // initializes timer
             [[maybe_unused]] void initTimer(ChannelCell* const cell) {
+                // enable clocks
+                __HAL_RCC_TIM8_CLK_ENABLE();
+
+                // Deinitializes peripheral registers and resets to default state
+                HAL_GPIO_DeInit(cell->clkport, cell->clkpin);
+                GPIO_InitTypeDef init;
+
+                // Set clk to SCK output pin. Din configured by CubeMX (Jacob thinks interrupts are hard)
+                init.Pin = (cell->clkpin);
+                init.Mode = GPIO_MODE_AF_PP;
+                init.Pull = GPIO_NOPULL;
+                init.Alternate = GPIO_AF3_TIM8;
+                HAL_GPIO_Init(cell->clkport, &init);
+
+                // Disable timer
+                timer->CR1 &= ~TIM_CR1_CEN;
+
+                // Clears:
+                // - ARPE: We do not want ARR preloading, we want to be able to load directly
+                // - CMS: Put counter in up/down counting mode
+                // - DIR: Put counter in upcounting mode
+                timer->CR1 &= ~(TIM_CR1_ARPE | TIM_CR1_CMS | TIM_CR1_DIR);
+
+                // Results in a timer clock of 10MHz (t=0.1micros)
+                timer->PSC = (240000000 / 10000000) - 1;
+
+                // 20 * 0.1micros = 2micro period (t3 + t4 in datasheet)
+                timer->ARR = 20;
+
+                // Reset counter
+                timer->CNT = 0;
+
+                // Enable the moe uwu
+                timer->BDTR |= TIM_BDTR_MOE;
+
+                // Clear CCER
+                timer->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1P);
+                timer->CCER &= ~(TIM_CCER_CC2E | TIM_CCER_CC2P);
+                timer->CCER &= ~(TIM_CCER_CC3E | TIM_CCER_CC3P);
+
+                // Set OC1M to PWM mode
+                timer->CCMR1 &= ~(TIM_CCMR1_CC1S | (6 << TIM_CCMR1_OC1M_Pos) | TIM_CCMR1_CC2S | (6 << TIM_CCMR1_OC2M_Pos));
+                timer->CCMR2 &= ~(TIM_CCMR2_CC3S | (6 << TIM_CCMR2_OC3M_Pos));
+                timer->CCMR1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2M_2;
+                timer->CCMR2 |= TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3M_2;
+
+                // Set CCR1-3 to half of ARR, for 50% duty cycle
+                timer->CCR1 = 10;
+                timer->CCR2 = 10;
+                timer->CCR3 = 10;
+
+                // Set CCR4 as the time to actually read the GPIO data. The reading is triggered via a interrupt
+                timer->CCR4 = 20;
+
+                // Enable capture/compare and set polarity to make output normally low
+                timer->CCER |= cell->CCER_CCNE | cell->CCER_CCNP | TIM_CCER_CC4E;
+
+                // Cause an update so that all the fun stuff gets written to the shadow registers
+                timer->EGR |= TIM_EGR_UG;
+
+                // Enable capture interrupts
+                timer->DIER |= TIM_DIER_UIE | TIM_DIER_CC4IE;
+
+                // Enable capture interrupt
+                HAL_NVIC_SetPriority(TIM8_CC_IRQn, 0, 0);
+                HAL_NVIC_EnableIRQ(TIM8_CC_IRQn);
+
+                timer->CR1 |= TIM_CR1_CEN;
+            }
+
+            // connect output channel
+            [[maybe_unused]] void conChannel(ChannelCell* const cell) {
+                // Deinitializes peripheral registers and resets to default state
+                HAL_GPIO_DeInit(cell->clkport, cell->clkpin);
+                GPIO_InitTypeDef init;
+
+                // Set clk to SCK output pin. Din configured by CubeMX (electrical jesus says interrupts r hard)
+                init.Pin = (cell->clkpin);
+                init.Mode = GPIO_MODE_AF_PP;
+                init.Pull = GPIO_NOPULL;
+                init.Alternate = GPIO_AF3_TIM8;
+                HAL_GPIO_Init(cell->clkport, &init);
+
+                // Enable capture/compare and set polarity to make output normally low
+                timer->CCER |= cell->CCER_CCNE | cell->CCER_CCNP;
+
+                // Send it to shadow realm
+                timer->EGR |= TIM_EGR_UG;
+            }
+
+            // disconnect output channel
+            [[maybe_unused]] void disChannel(ChannelCell* const cell) {
+                // Disable capture/compare
+                timer->CCER &= ~(cell->CCER_CCNE);
+
+                // Send it to shadow realm
+                timer->EGR |= TIM_EGR_UG;
+            }
+        } // namespace T1
+        namespace T2 {
+            TIM_TypeDef* const timer = TIM1;
+
+            // initializes timer
+            [[maybe_unused]] void initTimer(ChannelCell* cell) {
                 // enable clocks
                 __HAL_RCC_TIM1_CLK_ENABLE();
 
@@ -102,110 +206,6 @@ namespace CellsNew {
             }
 
             // connect output channel
-            [[maybe_unused]] void conChannel(ChannelCell* const cell) {
-                // Deinitializes peripheral registers and resets to default state
-                HAL_GPIO_DeInit(cell->clkport, cell->clkpin);
-                GPIO_InitTypeDef init;
-
-                // Set clk to SCK output pin. Din configured by CubeMX (electrical jesus says interrupts r hard)
-                init.Pin = (cell->clkpin);
-                init.Mode = GPIO_MODE_AF_PP;
-                init.Pull = GPIO_NOPULL;
-                init.Alternate = GPIO_AF1_TIM1;
-                HAL_GPIO_Init(cell->clkport, &init);
-
-                // Enable capture/compare and set polarity to make output normally low
-                timer->CCER |= cell->CCER_CCNE | cell->CCER_CCNP;
-
-                // Send it to shadow realm
-                timer->EGR |= TIM_EGR_UG;
-            }
-
-            // disconnect output channel
-            [[maybe_unused]] void disChannel(ChannelCell* const cell) {
-                // Disable capture/compare
-                timer->CCER &= ~(cell->CCER_CCNE);
-
-                // Send it to shadow realm
-                timer->EGR |= TIM_EGR_UG;
-            }
-        } // namespace T1
-        namespace T2 {
-            TIM_TypeDef* const timer = TIM2;
-
-            // initializes timer
-            [[maybe_unused]] void initTimer(ChannelCell* cell) {
-                // enable clocks
-                __HAL_RCC_TIM2_CLK_ENABLE();
-
-                // Deinitializes peripheral registers and resets to default state
-                HAL_GPIO_DeInit(cell->clkport, cell->clkpin);
-                GPIO_InitTypeDef init;
-
-                // Set clk to SCK output pin. Din configured by CubeMX (Jacob thinks interrupts are hard)
-                init.Pin = (cell->clkpin);
-                init.Mode = GPIO_MODE_AF_PP;
-                init.Pull = GPIO_NOPULL;
-                init.Alternate = GPIO_AF1_TIM2;
-                HAL_GPIO_Init(cell->clkport, &init);
-
-                // Disable timer
-                timer->CR1 &= ~TIM_CR1_CEN;
-
-                // Clears:
-                // - ARPE: We do not want ARR preloading, we want to be able to load directly
-                // - CMS: Put counter in up/down counting mode
-                // - DIR: Put counter in upcounting mode
-                timer->CR1 &= ~(TIM_CR1_ARPE | TIM_CR1_CMS | TIM_CR1_DIR);
-
-                // Results in a timer clock of 10MHz (t=0.1micros)
-                timer->PSC = (240000000 / 10000000) - 1;
-
-                // 20 * 0.1micros = 2micro period (t3 + t4 in datasheet)
-                timer->ARR = 20;
-
-                // Reset counter
-                timer->CNT = 0;
-
-                // Enable the moe uwu
-                timer->BDTR |= TIM_BDTR_MOE;
-
-                // Clear CCER
-                timer->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1P);
-                timer->CCER &= ~(TIM_CCER_CC2E | TIM_CCER_CC2P);
-                timer->CCER &= ~(TIM_CCER_CC3E | TIM_CCER_CC3P);
-
-                // Set OC1M to PWM mode
-                timer->CCMR1 &= ~(TIM_CCMR1_CC1S | (6 << TIM_CCMR1_OC1M_Pos) | TIM_CCMR1_CC2S | (6 << TIM_CCMR1_OC2M_Pos));
-                timer->CCMR2 &= ~(TIM_CCMR2_CC3S | (6 << TIM_CCMR2_OC3M_Pos));
-                timer->CCMR1 |= TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC2M_1 | TIM_CCMR1_OC2M_2;
-                timer->CCMR2 |= TIM_CCMR2_OC3M_1 | TIM_CCMR2_OC3M_2;
-
-                // Set CCR1-3 to half of ARR, for 50% duty cycle
-                timer->CCR1 = 10;
-                timer->CCR2 = 10;
-                timer->CCR3 = 10;
-
-                // Set CCR4 as the time to actually read the GPIO data. The reading is triggered via a interrupt
-                timer->CCR4 = 20;
-
-                // Enable capture/compare and set polarity to make output normally low
-                timer->CCER |= cell->CCER_CCNE | cell->CCER_CCNP | TIM_CCER_CC4E;
-
-                // Cause an update so that all the fun stuff gets written to the shadow registers
-                timer->EGR |= TIM_EGR_UG;
-
-                // Enable capture interrupts
-                timer->DIER |= TIM_DIER_UIE | TIM_DIER_CC4IE;
-
-                // Enable capture interrupt
-                HAL_NVIC_SetPriority(TIM8_CC_IRQn, 0, 0);
-                HAL_NVIC_EnableIRQ(TIM8_CC_IRQn);
-
-                timer->CR1 |= TIM_CR1_CEN;
-            }
-
-            // connect output channel
             [[maybe_unused]] void conChannel(ChannelCell* cell) {
                 // Deinitializes peripheral registers and resets to default state
                 HAL_GPIO_DeInit(cell->clkport, cell->clkpin);
@@ -215,7 +215,7 @@ namespace CellsNew {
                 init.Pin = (cell->clkpin);
                 init.Mode = GPIO_MODE_AF_PP;
                 init.Pull = GPIO_NOPULL;
-                init.Alternate = GPIO_AF1_TIM2;
+                init.Alternate = GPIO_AF1_TIM1;
                 HAL_GPIO_Init(cell->clkport, &init);
 
                 // Enable capture/compare and set polarity to make output normally low
