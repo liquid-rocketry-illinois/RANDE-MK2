@@ -392,6 +392,8 @@ namespace Test {
                 new BoolWaiter([] { return pResp; })) {}
     };
 
+    bool AutoVentProc::pResp;
+
     Procedure* const ESTOP = new OneShot([] {
         using namespace SimpleActuators;
         RCP::writeDiscreteActuator(SOL_1_id, false);
