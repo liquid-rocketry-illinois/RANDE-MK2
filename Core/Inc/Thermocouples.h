@@ -4,7 +4,7 @@
 #include <cstdint>
 
 namespace TC {
-    static constexpr uint8_t NUM_TC = 5;
+    static constexpr uint8_t NUM_TC = 8;
 
     void init();
     void yield();
