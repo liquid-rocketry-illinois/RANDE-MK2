@@ -24,6 +24,8 @@ namespace Test {
     extern Procedure* const ESTOP;
 }
 
+static bool autoVentLox;
+
 // This function is declared extern C so that it can be called from the C environment. Otherwise, C++ name
 // mangling would mean the C call to the function would not link
 extern "C" void setup() {
@@ -47,6 +49,8 @@ extern "C" void setup() {
     LoadCells::init();
     BoolSensors::init();
     TC::init();
+
+    autoVentLox = false;
 }
 
 // Buffer to store received data for RCP
@@ -82,6 +86,12 @@ extern "C" void loop() {
     LoadCells::yield();
     BoolSensors::yield();
     TC::yield();
+
+    if(autoVentLox) {
+        float tval = Transducers::readTransducer(3);
+        if(tval > 375) RCP::writeDiscreteActuator(SimpleActuators::SOL_9_id, false);
+        else if(tval < 360) RCP::writeDiscreteActuator(SimpleActuators::SOL_9_id, true);
+    }
 }
 
 // These functions are the 4 required for minimal RCP implementation
@@ -168,18 +178,17 @@ namespace Test {
     };
 
     class Hotfire : public Procedure {
+        static constexpr float THERMO_CUTOFF = 300;
+        static constexpr uint8_t ENGINE_THERMOS[] = {4, 5, 6, 7};
+
         enum class State { INIT, EMATCH_WAIT, BURN_WAIT, OX_WAIT, FIRE_WAIT, END } state;
         uint32_t timer;
 
-        void abort() {
-            RCP::writeDiscreteActuator(SimpleActuators::SOL_9_id, false);
-            RCP::writeDiscreteActuator(SimpleActuators::SOL_7_id, true);
-        }
-
         const bool autoOff;
+        const bool thermoCutoff;
 
     public:
-        Hotfire(bool autoOff = false) : autoOff(autoOff) {};
+        Hotfire(bool autoOff = false, bool thermoCutoff = false) : autoOff(autoOff), thermoCutoff(thermoCutoff) {};
 
         void initialize() override { state = State::INIT; }
 
@@ -240,6 +249,17 @@ namespace Test {
                 break;
 
             case State::FIRE_WAIT:
+                if(thermoCutoff) {
+                    for(uint8_t tc : ENGINE_THERMOS) {
+                        if(TC::readTC(tc) > THERMO_CUTOFF) {
+                            RCP::writeDiscreteActuator(SOL_4_id, false);
+                            RCPDebug("[HOTFIRE] Thermal cutoff reached, aborting");
+                            state = State::END;
+                            break;
+                        }
+                    }
+                }
+
                 if(autoOff && HAL_GetTick() - timer > 10000) {
                     RCP::writeDiscreteActuator(SOL_3_id, false);
                     RCP::writeDiscreteActuator(SOL_4_id, false);
@@ -352,6 +372,26 @@ namespace Test {
 
     bool MBVDelaySetter::pdReturned = false;
 
+    class AutoVentProc : public SequentialProcedure {
+        static bool pResp;
+        static void pacc(const RCP::PromptData& data) {
+            pResp = true;
+            autoVentLox = data.boolData;
+
+            // Autoclose the vent if we disabled autoloxvent
+            if(!autoVentLox) RCP::writeDiscreteActuator(SimpleActuators::SOL_9_id, true);
+        }
+
+    public:
+        AutoVentProc() :
+            SequentialProcedure(
+                new OneShot([] {
+                    pResp = false;
+                    RCP::setPrompt("Set lox tank auto venting: ", RCP_PromptDataType_GONOGO, pacc);
+                }),
+                new BoolWaiter([] { return pResp; })) {}
+    };
+
     Procedure* const ESTOP = new OneShot([] {
         using namespace SimpleActuators;
         RCP::writeDiscreteActuator(SOL_1_id, false);
@@ -373,8 +413,8 @@ namespace Test {
         new DanceMode(),
         new TimedValves(),
         new MBVDelaySetter(),
-        new Hotfire(true),
-        new Procedure(),
+        new Hotfire(false, true),
+        new AutoVentProc(),
         new Procedure(),
         new Procedure(),
         new Procedure(),
