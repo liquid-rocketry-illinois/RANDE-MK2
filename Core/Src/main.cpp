@@ -188,9 +188,13 @@ namespace Test {
         const bool thermoCutoff;
 
     public:
-        Hotfire(bool autoOff = false, bool thermoCutoff = false) : autoOff(autoOff), thermoCutoff(thermoCutoff) {};
+        Hotfire(bool autoOff = false, bool thermoCutoff = false) : autoOff(autoOff), thermoCutoff(thermoCutoff) {}
 
-        void initialize() override { state = State::INIT; }
+        void initialize() override {
+            autoVentLox = false;
+            RCP::writeDiscreteActuator(SimpleActuators::SOL_9_id, true);
+            state = State::INIT;
+        }
 
         void execute() override {
             using namespace SimpleActuators;
@@ -240,7 +244,7 @@ namespace Test {
 
             case State::OX_WAIT:
                 if(HAL_GetTick() - timer > MBV_DELAY) {
-                    RCP::writeDiscreteActuator(SOL_3_id, true);
+                    RCP::writeDiscreteActuator(SOL_3_id, false);
                     RCPDebug("[HOTFIRE] Opening OX MBV");
                     timer = HAL_GetTick();
                     state = State::FIRE_WAIT;
@@ -261,7 +265,7 @@ namespace Test {
                 }
 
                 if(autoOff && HAL_GetTick() - timer > 10000) {
-                    RCP::writeDiscreteActuator(SOL_3_id, false);
+                    RCP::writeDiscreteActuator(SOL_3_id, true);
                     RCP::writeDiscreteActuator(SOL_4_id, false);
                     RCPDebug("[HOTFIRE] autoclosed ball valves after 10s");
                     state = State::END;
@@ -384,12 +388,11 @@ namespace Test {
 
     public:
         AutoVentProc() :
-            SequentialProcedure(
-                new OneShot([] {
-                    pResp = false;
-                    RCP::setPrompt("Set lox tank auto venting: ", RCP_PromptDataType_GONOGO, pacc);
-                }),
-                new BoolWaiter([] { return pResp; })) {}
+            SequentialProcedure(new OneShot([] {
+                                    pResp = false;
+                                    RCP::setPrompt("Set lox tank auto venting: ", RCP_PromptDataType_GONOGO, pacc);
+                                }),
+                                new BoolWaiter([] { return pResp; })) {}
     };
 
     bool AutoVentProc::pResp;
@@ -411,11 +414,11 @@ namespace Test {
     // clang-format off
     Tests tests = {
         new TimedBW(),
-        new Hotfire(),
+        new Hotfire(false, true),
         new DanceMode(),
         new TimedValves(),
         new MBVDelaySetter(),
-        new Hotfire(false, true),
+        new Hotfire(false),
         new AutoVentProc(),
         new Procedure(),
         new Procedure(),

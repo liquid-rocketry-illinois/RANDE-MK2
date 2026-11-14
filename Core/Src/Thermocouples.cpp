@@ -18,7 +18,7 @@
 namespace TC {
     namespace {
         // The multiplexer address for each connected MCP
-        constexpr uint8_t TC_ADDRS[] = {2, 1, 4, 7, 3, 0, 5, 6};
+        constexpr uint8_t TC_ADDRS[] = {2, 1, 6, 7, 3, 0, 5, 4};
 
         // I2C address for the MCP
         constexpr uint16_t MCPADD = 0x60 << 1;
