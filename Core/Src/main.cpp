@@ -25,6 +25,7 @@ namespace Test {
 }
 
 static bool autoVentLox;
+static bool avlState;
 
 // This function is declared extern C so that it can be called from the C environment. Otherwise, C++ name
 // mangling would mean the C call to the function would not link
@@ -51,6 +52,7 @@ extern "C" void setup() {
     TC::init();
 
     autoVentLox = false;
+    avlState  = false;
 }
 
 // Buffer to store received data for RCP
@@ -89,8 +91,14 @@ extern "C" void loop() {
 
     if(autoVentLox) {
         float tval = Transducers::readTransducer(3);
-        if(tval > 375) RCP::writeDiscreteActuator(SimpleActuators::SOL_9_id, false);
-        else if(tval < 360) RCP::writeDiscreteActuator(SimpleActuators::SOL_9_id, true);
+        if(tval > 375 && avlState) {
+            RCP::writeDiscreteActuator(SimpleActuators::SOL_9_id, false);
+            avlState = false;
+        }
+        else if(tval < 360 && !avlState) {
+            RCP::writeDiscreteActuator(SimpleActuators::SOL_9_id, true);
+            avlState = true;
+        }
     }
 }
 
